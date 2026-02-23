@@ -1,0 +1,2189 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>那年那個夏天我們 - 2015</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700&family=Noto+Serif+TC:wght@600&family=Zhi+Mang+Xing&display=swap');
+
+        /* 기본 초기화 및 배경 설정 */
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            font-family: 'Malgun Gothic', '맑은 고딕', sans-serif;
+            overflow: hidden; 
+            background: url('https://i.imgur.com/smV2eqv.jpeg') no-repeat center center/cover;
+            user-select: none;
+        }
+
+        /* 데스크톱 아이콘 영역 */
+        #desktop {
+            display: flex;
+            flex-direction: column;
+            flex-wrap: wrap;
+            align-content: flex-start;
+            height: calc(100% - 40px);
+            padding: 10px;
+            gap: 15px;
+        }
+
+        /* 개별 아이콘 스타일 */
+        .icon-container {
+            width: 80px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 5px;
+            cursor: pointer;
+            border-radius: 4px;
+            border: 1px solid transparent;
+        }
+
+        .icon-container:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+        }
+
+        .icon-container:active, .icon-container.selected {
+            background-color: rgba(255, 255, 255, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+        }
+
+        .icon-img {
+            font-size: 40px; 
+            margin-bottom: 5px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+
+        .icon-text {
+            color: white;
+            font-size: 12px;
+            text-align: center;
+            text-shadow: 1px 1px 2px black;
+            word-break: break-all;
+        }
+
+        /* 하단 작업표시줄 */
+        #taskbar {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            height: 40px;
+            background: rgba(10, 25, 49, 0.85);
+            backdrop-filter: blur(5px);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 1000;
+            box-shadow: 0 -1px 5px rgba(0,0,0,0.5);
+        }
+
+        .start-btn {
+            height: 100%;
+            padding: 0 15px;
+            display: flex;
+            align-items: center;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            background: rgba(255, 255, 255, 0.1);
+            font-size: 18px;
+        }
+
+        .start-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .taskbar-right {
+            display: flex;
+            align-items: center;
+            color: white;
+            padding-right: 15px;
+            font-size: 12px;
+        }
+
+        .time-display {
+            text-align: right;
+            cursor: default;
+        }
+
+        /* ====== 공통 창 스타일 ====== */
+        .draggable-window {
+            position: absolute;
+            background-color: #fff;
+            border: 1px solid #0078D7;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+            display: none; 
+            flex-direction: column;
+            z-index: 500;
+            overflow: hidden;
+        }
+
+        /* 브라우저 상단 타이틀바 (드래그 영역) */
+        .window-titlebar {
+            height: 30px;
+            background-color: #ffffff;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-left: 10px;
+            cursor: default;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .window-titlebar:active {
+            cursor: move;
+        }
+
+        .title-text {
+            font-size: 12px;
+            color: #333;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .window-controls {
+            display: flex;
+            height: 100%;
+        }
+
+        .window-controls span {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 45px;
+            height: 100%;
+            font-size: 12px;
+            cursor: pointer;
+            color: #333;
+        }
+
+        .window-controls span:hover { background-color: #e5e5e5; }
+        .window-controls .close-btn:hover { background-color: #E81123; color: white; }
+
+        /* 브라우저 고유 스타일 */
+        #browser-window { width: 900px; height: 600px; top: 50px; left: 100px; resize: both; }
+
+        #browser-toolbar {
+            height: 40px;
+            background-color: #f5f6f7;
+            border-bottom: 1px solid #ccc;
+            display: flex;
+            align-items: center;
+            padding: 0 10px;
+            gap: 10px;
+        }
+
+        .nav-btn {
+            background: none; border: none; font-size: 16px; cursor: pointer; color: #555;
+        }
+        
+        .nav-btn:hover { color: #000; }
+        .nav-btn:active { color: #0078D7; }
+
+        #url-bar {
+            flex-grow: 1;
+            height: 24px;
+            border: 1px solid #ccc;
+            padding: 0 10px;
+            font-size: 13px;
+            color: #333;
+            background: white;
+            outline: none;
+        }
+
+        /* ====== 웹페이지 컨텐츠 영역 ====== */
+        #browser-content {
+            flex-grow: 1;
+            background-color: #fff;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        /* 1. 가상 웹사이트 (야후! 키모) */
+        #yahoo-page {
+            display: block; /* 초기 화면 */
+        }
+
+        .yahoo-header {
+            width: 100%;
+            padding: 50px 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .yahoo-logo {
+            color: #410093;
+            font-size: 50px;
+            font-weight: 900;
+            font-family: Arial, sans-serif;
+            margin: 0 0 30px 0;
+            letter-spacing: -1px;
+        }
+        
+        .yahoo-logo span { font-size: 28px; font-weight: bold; margin-left: 5px;}
+
+        /* 검색창 영역 */
+        .search-container {
+            position: relative;
+            display: flex;
+            width: 550px;
+            height: 45px;
+        }
+
+        #search-input {
+            flex-grow: 1;
+            border: 2px solid #410093;
+            border-right: none;
+            padding: 0 15px;
+            font-size: 16px;
+            outline: none;
+        }
+
+        #search-btn {
+            width: 90px;
+            background-color: #410093;
+            color: white;
+            border: none;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        #search-btn:hover { background-color: #320073; }
+
+        /* 검색 기록 드롭다운 */
+        #search-history {
+            position: absolute;
+            top: 45px;
+            left: 0;
+            width: calc(100% - 90px); 
+            background: white;
+            border: 1px solid #ccc;
+            border-top: none;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            display: none; 
+            flex-direction: column;
+            z-index: 10;
+        }
+
+        #search-history li {
+            padding: 12px 15px;
+            font-size: 14px;
+            color: #333;
+            cursor: pointer;
+            border-bottom: 1px solid #f0f0f0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        #search-history li:last-child { border-bottom: none; }
+        #search-history li:hover { background-color: #f5f5f5; color: #410093; }
+        .history-icon { color: #999; font-size: 12px; }
+
+        .yahoo-nav {
+            margin-top: 25px;
+            display: flex;
+            gap: 25px;
+            font-size: 14px;
+            color: #333;
+            font-weight: bold;
+        }
+
+        .yahoo-nav span { cursor: pointer; }
+        .yahoo-nav span:hover { color: #410093; text-decoration: underline; }
+
+        /* 2. 가상 웹사이트 (청해고급중학 홈페이지) */
+        #qinghai-page {
+            display: none; 
+            background-color: #f0f4f8;
+            min-height: 100%;
+        }
+
+        .qh-top-banner {
+            background-color: #003366;
+            color: white;
+            padding: 20px 40px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            border-bottom: 5px solid #ffcc00;
+        }
+
+        .qh-logo-img {
+            width: 80px;
+            height: 80px; 
+            object-fit: cover; 
+            border-radius: 50%; 
+            border: 3px solid #ffcc00;
+            background-color: white;
+            display: block;
+        }
+
+        .qh-title h1 { margin: 0; font-size: 28px; letter-spacing: 2px; }
+        .qh-title p { margin: 5px 0 0 0; font-size: 12px; color: #ccc; letter-spacing: 1px; }
+
+        .qh-main-img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            display: block;
+        }
+
+        .qh-nav-menu {
+            background-color: #ffffff;
+            border-bottom: 1px solid #ccc;
+            padding: 10px 40px;
+            display: flex;
+            gap: 30px;
+            font-size: 14px;
+            font-weight: bold;
+            color: #003366;
+        }
+        .qh-nav-menu span { cursor: pointer; padding: 5px; }
+        .qh-nav-menu span:hover, .qh-nav-menu span.active { color: #ffcc00; border-bottom: 2px solid #ffcc00; }
+
+        .qh-marquee {
+            background-color: #e6f0ff;
+            color: #d32f2f;
+            padding: 5px 10px;
+            font-size: 13px;
+            border-bottom: 1px solid #b3d1ff;
+            font-weight: bold;
+        }
+
+        .qh-content-wrap {
+            padding: 30px 40px;
+            display: flex;
+            gap: 20px;
+        }
+
+        .qh-box {
+            flex-grow: 1;
+            background: white;
+            border: 1px solid #ccc;
+            border-top: 3px solid #003366;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        
+        .qh-box h3 {
+            margin: 0 0 15px 0;
+            font-size: 18px;
+            color: #003366;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
+        }
+
+        .qh-notice-list { list-style: none; padding: 0; margin: 0; }
+        .qh-notice-list li {
+            padding: 10px 0;
+            border-bottom: 1px dashed #ccc;
+            font-size: 14px;
+            color: #333;
+            display: flex;
+            gap: 15px;
+            cursor: pointer;
+        }
+        .qh-notice-list li:hover { color: #003366; text-decoration: underline; background-color: #fdfdfd; }
+        .qh-notice-list .date { color: #888; width: 80px; }
+        .qh-notice-list .hot { color: red; font-weight: bold; font-size: 12px; margin-right: 5px; }
+
+        #qh-intro-content, #qh-life-content, #qh-club-content { display: none; } 
+        
+        .qh-info-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+            color: #333;
+            margin-top: 15px;
+        }
+        
+        .qh-info-table th, .qh-info-table td {
+            border: 1px solid #ccc;
+            padding: 12px;
+            text-align: left;
+        }
+        
+        .qh-info-table th {
+            background-color: #f0f4f8;
+            color: #003366;
+            width: 120px;
+            font-weight: bold;
+        }
+
+        .qh-schedule-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+            color: #333;
+            margin-bottom: 30px;
+        }
+        .qh-schedule-table th, .qh-schedule-table td {
+            border: 1px solid #ccc;
+            padding: 8px 12px;
+            text-align: left;
+        }
+        .qh-schedule-table .term-header { background-color: #003366; color: white; text-align: center; font-weight: bold; font-size: 14px; }
+        .qh-schedule-table .month { background-color: #f0f4f8; font-weight: bold; width: 60px; text-align: center; color: #003366; }
+        .highlight-red { color: #d32f2f; font-weight: bold; }
+        .highlight-blue { color: #0078D7; font-weight: bold; }
+        .note-text { font-size: 11px; color: #777; margin-left: 5px; }
+        
+        .club-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .club-card { border: 1px solid #e0e0e0; border-radius: 5px; padding: 15px; background-color: #fafafa; }
+        .club-card h4 { margin: 0 0 10px 0; color: #003366; font-size: 16px; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid #eaeaea; padding-bottom: 5px; }
+        .club-card p { margin: 0; font-size: 13px; color: #555; line-height: 1.5; }
+        .club-meta { margin-top: 10px; font-size: 12px; color: #888; }
+
+        /* 공통 SNS 프레임 스타일 (본문 폰트 일괄 Noto Sans TC 통일) */
+        .friend-list-wrap { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .friend-card {
+            display: flex; align-items: center; gap: 15px; padding: 15px;
+            border: 1px solid #eee; border-radius: 8px; background-color: #fafafa;
+            cursor: pointer; transition: all 0.2s ease;
+        }
+        .friend-img {
+            width: 60px; height: 60px; border-radius: 50%;
+            background-color: #ddd; display: flex; align-items: center; justify-content: center;
+            color: #999; font-size: 10px; overflow: hidden; border: 2px solid;
+        }
+        .friend-info h4 { margin: 0 0 5px 0; color: #333; font-size: 15px; font-family: 'Noto Sans TC', sans-serif;}
+        .friend-info p { margin: 0; color: #777; font-size: 12px; font-family: 'Noto Sans TC', sans-serif;}
+
+        .sns-bgm-player {
+            background: rgba(255,255,255,0.25); border: 1px solid rgba(255,255,255,0.6);
+            padding: 5px 12px; border-radius: 20px; font-size: 12px;
+            display: flex; align-items: center; gap: 10px; font-weight: bold;
+        }
+        .sns-bgm-player button {
+            background: none; border: none; color: white; font-size: 14px;
+            cursor: pointer; padding: 0; display: flex; align-items: center;
+        }
+        .sns-bgm-player button:hover { color: #FFD700; }
+        .sns-bgm-player marquee { width: 140px; }
+
+        /* ========================================================
+           3. 하오위의 SNS 블로그
+           ======================================================== */
+        #sns-haoyu-page {
+            display: none; background-color: #fff3e6; min-height: 100%; padding: 20px; font-family: 'Noto Sans TC', sans-serif;
+        }
+        .sns-header {
+            background-color: #FF6B6B; color: white; padding: 20px 30px; border-radius: 12px 12px 0 0;
+            display: flex; justify-content: space-between; align-items: flex-end; border: 3px dashed #FF8C42;
+        }
+        .sns-title h2 { margin: 0; font-family: 'Zhi Mang Xing', cursive, sans-serif; font-size: 42px; text-shadow: 2px 3px 5px rgba(0,0,0,0.3); letter-spacing: 2px;}
+        .sns-body { display: flex; gap: 20px; margin-top: 15px; }
+        .sns-sidebar {
+            width: 220px; background: white; border: 2px solid #FF8C42; border-radius: 8px;
+            padding: 15px; text-align: center; box-shadow: 2px 2px 10px rgba(255, 107, 107, 0.1); align-self: flex-start; 
+        }
+        .sns-profile-img {
+            width: 150px; height: 150px; background-color: #fff; border: 2px solid #FF6B6B;
+            border-radius: 10px; margin: 0 auto 15px auto; overflow: hidden; display: flex; align-items: center; justify-content: center;
+        }
+        .sns-profile-img img { width: 100%; height: 100%; object-fit: cover; }
+        .sns-visitor { font-size: 12px; color: #666; border-top: 1px dashed #FF8C42; border-bottom: 1px dashed #FF8C42; padding: 8px 0; margin: 15px 0; font-weight: bold; }
+        .sns-nav { list-style: none; padding: 0; margin: 0; text-align: left; font-size: 14px; font-weight: bold; }
+        .sns-nav li { padding: 10px 8px; border-bottom: 1px dotted #ccc; cursor: pointer; color: #FF6B6B;}
+        .sns-nav li:hover, .sns-nav li.active { background-color: #fff0e6; padding-left: 15px; transition: 0.2s;}
+        .sns-main-content {
+            flex-grow: 1; background: white; border: 2px solid #FF8C42; border-radius: 8px;
+            padding: 25px; box-shadow: 2px 2px 10px rgba(255, 107, 107, 0.1);
+        }
+        #sns-tab-diary { display: none; } 
+        .sns-post { border-bottom: 1px solid #eee; padding-bottom: 20px; margin-bottom: 25px; }
+        .sns-post-date { font-size: 12px; color: #999; margin-bottom: 10px; font-family: 'Noto Sans TC', sans-serif;}
+        .sns-post-content { font-size: 15px; color: #333; line-height: 1.6; }
+        .sns-translation { font-size: 13px; color: #777; margin-top: 5px; background: #fafafa; padding: 8px; border-left: 3px solid #FF6B6B;}
+        .guestbook-box { background-color: #fffaf5; border: 2px dashed #FF8C42; padding: 15px; margin-top: 20px; border-radius: 8px; }
+        .guestbook-item { margin-bottom: 12px; border-bottom: 1px dotted #ccc; padding-bottom: 10px; font-size: 14px; line-height: 1.5; }
+        .guestbook-name { font-weight: bold; color: #FF6B6B; margin-right: 5px; }
+        #sns-tab-profile { display: block; } 
+        .profile-section { margin-bottom: 20px; }
+        .profile-section h3 { color: #FF6B6B; border-bottom: 2px dashed #FF8C42; padding-bottom: 5px; margin-bottom: 15px; font-size: 18px; font-family: 'Noto Sans TC', sans-serif;}
+        .profile-list { list-style: none; padding: 0; margin: 0; }
+        .profile-list li { margin-bottom: 12px; font-size: 14px; color: #444; display: flex; }
+        .profile-list .label { font-weight: bold; color: #FF8C42; width: 80px; flex-shrink: 0; }
+        .profile-list .desc { flex-grow: 1; line-height: 1.5; }
+        .profile-list .trans { display: block; font-size: 12px; color: #999; margin-top: 2px; }
+        .tmi-box { background-color: #fffaf5; padding: 15px; border-radius: 8px; border: 1px solid #ffe6cc; font-size: 13px; color: #555; line-height: 1.6; }
+        #sns-tab-friends { display: none; }
+        .friend-card.hy:hover { border-color: #FF8C42; background-color: #fff0e6; transform: translateY(-2px); }
+
+        /* ========================================================
+           4. 린위천의 SNS 블로그
+           ======================================================== */
+        #sns-yuchen-page {
+            display: none; background-color: #f0f2f5; min-height: 100%; padding: 20px; font-family: 'Noto Sans TC', sans-serif;
+        }
+        .yc-header {
+            background-color: #4A5D6E; color: white; padding: 20px 30px; border-radius: 4px 4px 0 0;
+            display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 4px solid #829CB2;
+        }
+        .yc-title h2 { margin: 0; font-family: 'Noto Serif TC', serif; font-size: 34px; letter-spacing: 2px; font-weight: 600; }
+        .yc-sidebar {
+            width: 220px; background: white; border: 1px solid #ccc; border-radius: 4px; padding: 15px;
+            text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.05); align-self: flex-start; 
+        }
+        .yc-profile-img {
+            width: 150px; height: 150px; background-color: #f8f9fa; border: 1px solid #bbb; margin: 0 auto 15px auto;
+            display: flex; align-items: center; justify-content: center; color: #999; font-size: 12px; overflow: hidden;
+        }
+        .yc-profile-img img { width: 100%; height: 100%; object-fit: cover; }
+        .yc-visitor { font-size: 12px; color: #666; border-top: 1px solid #eee; border-bottom: 1px solid #eee; padding: 8px 0; margin: 15px 0; letter-spacing: 1px; }
+        .yc-nav { list-style: none; padding: 0; margin: 0; text-align: left; font-size: 14px; color: #4A5D6E; font-family: 'Noto Sans TC', sans-serif;}
+        .yc-nav li { padding: 10px 8px; border-bottom: 1px solid #f0f0f0; cursor: pointer; transition: 0.2s;}
+        .yc-nav li:hover, .yc-nav li.active { background-color: #e8ecf1; font-weight: bold; padding-left: 15px; border-left: 3px solid #4A5D6E; }
+        .yc-main-content { flex-grow: 1; background: white; border: 1px solid #ccc; border-radius: 4px; padding: 25px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+        #yc-tab-diary, #yc-tab-friends { display: none; } 
+        #yc-tab-profile { display: block; } 
+        .yc-post { border-bottom: 1px solid #eee; padding-bottom: 20px; margin-bottom: 25px; }
+        .yc-post-date { font-size: 12px; color: #999; margin-bottom: 10px; font-family: 'Noto Sans TC', sans-serif;}
+        .yc-post-content { font-size: 14px; color: #333; line-height: 1.8; }
+        .yc-guestbook-box { background-color: #f8f9fa; border: 1px solid #e0e0e0; padding: 15px; margin-top: 20px; border-radius: 4px; }
+        .yc-guestbook-item { margin-bottom: 12px; border-bottom: 1px solid #eee; padding-bottom: 10px; font-size: 13px; line-height: 1.5; }
+        .yc-guestbook-name { font-weight: bold; color: #4A5D6E; margin-right: 5px; }
+        .yc-section-title { color: #4A5D6E; border-bottom: 2px solid #829CB2; padding-bottom: 5px; margin-bottom: 15px; font-size: 18px; font-family: 'Noto Sans TC', sans-serif; font-weight: 700; }
+        .profile-list .yc-label { font-weight: bold; color: #4A5D6E; width: 80px; flex-shrink: 0; }
+        .friend-card.yc:hover { border-color: #4A5D6E; background-color: #e8ecf1; transform: translateY(-2px); }
+
+        /* ========================================================
+           5. 천웨이팅의 SNS 블로그 (Grunge/Dark Red Vibe)
+           ======================================================== */
+        #sns-weiting-page {
+            display: none; background-color: #1a1a1a; min-height: 100%; padding: 20px; font-family: 'Noto Sans TC', sans-serif;
+        }
+        .wt-header {
+            background-color: #8B0000; color: white; padding: 20px 30px; border-radius: 8px 8px 0 0;
+            display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 4px solid #550000;
+        }
+        .wt-title h2 { margin: 0; font-family: 'Zhi Mang Xing', cursive, sans-serif; font-size: 38px; letter-spacing: 3px; color: #eee; }
+        .wt-sidebar {
+            width: 220px; background: #2d2d2d; border: 1px solid #444; border-radius: 8px; padding: 15px;
+            text-align: center; align-self: flex-start; color: #ddd;
+        }
+        .wt-profile-img {
+            width: 150px; height: 150px; background-color: #111; border: 2px solid #8B0000; margin: 0 auto 15px auto;
+            display: flex; align-items: center; justify-content: center; color: #777; font-size: 12px; overflow: hidden;
+        }
+        .wt-profile-img img { width: 100%; height: 100%; object-fit: cover; }
+        .wt-visitor { font-size: 12px; color: #888; border-top: 1px dashed #555; border-bottom: 1px dashed #555; padding: 8px 0; margin: 15px 0; }
+        .wt-nav { list-style: none; padding: 0; margin: 0; text-align: left; font-size: 14px; font-weight: bold; color: #ccc;}
+        .wt-nav li { padding: 10px 8px; border-bottom: 1px solid #444; cursor: pointer; transition: 0.2s;}
+        .wt-nav li:hover, .wt-nav li.active { background-color: #444; padding-left: 15px; border-left: 3px solid #8B0000; color: #fff;}
+        .wt-main-content { flex-grow: 1; background: #fdfdfd; border: 2px solid #8B0000; border-radius: 8px; padding: 25px; }
+        #wt-tab-diary, #wt-tab-friends { display: none; } 
+        #wt-tab-profile { display: block; } 
+        .wt-post { border-bottom: 1px solid #ddd; padding-bottom: 20px; margin-bottom: 25px; }
+        .wt-post-date { font-size: 12px; color: #888; margin-bottom: 10px; font-family: 'Noto Sans TC', sans-serif;}
+        .wt-post-content { font-size: 15px; color: #111; line-height: 1.6; }
+        .wt-guestbook-box { background-color: #f4f4f4; border: 2px solid #ddd; padding: 15px; margin-top: 20px; border-radius: 8px; }
+        .wt-guestbook-item { margin-bottom: 12px; border-bottom: 1px dashed #ccc; padding-bottom: 10px; font-size: 14px; line-height: 1.5; color: #333;}
+        .wt-guestbook-name { font-weight: bold; color: #8B0000; margin-right: 5px; }
+        .wt-section-title { color: #8B0000; border-bottom: 2px solid #444; padding-bottom: 5px; margin-bottom: 15px; font-size: 18px; font-family: 'Noto Sans TC', sans-serif; font-weight: 700;}
+        .profile-list .wt-label { font-weight: bold; color: #8B0000; width: 80px; flex-shrink: 0; }
+        .friend-card.wt { background-color: #fff; border: 1px solid #ccc; }
+        .friend-card.wt:hover { border-color: #8B0000; background-color: #ffeaea; transform: translateY(-2px); }
+
+        /* ========================================================
+           6. 장쯔한의 SNS 블로그 (Forest/Wood Vibe)
+           ======================================================== */
+        #sns-zihan-page {
+            display: none; background-color: #e6e8e3; min-height: 100%; padding: 20px; font-family: 'Noto Sans TC', sans-serif;
+        }
+        .zh-header {
+            background-color: #3e4a3d; color: white; padding: 20px 30px; border-radius: 2px;
+            display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 4px solid #2c3b2a;
+        }
+        .zh-title h2 { margin: 0; font-family: 'Noto Serif TC', serif; font-size: 32px; letter-spacing: 5px; color: #f0f4ec; }
+        .zh-sidebar {
+            width: 220px; background: #fafaf8; border: 1px solid #cbd2c6; border-radius: 2px; padding: 15px;
+            text-align: center; align-self: flex-start; color: #333;
+        }
+        .zh-profile-img {
+            width: 150px; height: 150px; background-color: #e6e8e3; border: 1px solid #8b9a82; margin: 0 auto 15px auto;
+            display: flex; align-items: center; justify-content: center; color: #777; font-size: 12px; overflow: hidden;
+        }
+        .zh-profile-img img { width: 100%; height: 100%; object-fit: cover; }
+        .zh-visitor { font-size: 12px; color: #666; border-top: 1px solid #cbd2c6; border-bottom: 1px solid #cbd2c6; padding: 8px 0; margin: 15px 0; }
+        .zh-nav { list-style: none; padding: 0; margin: 0; text-align: left; font-size: 14px; font-weight: bold; color: #444;}
+        .zh-nav li { padding: 10px 8px; border-bottom: 1px solid #e6e8e3; cursor: pointer; transition: 0.2s;}
+        .zh-nav li:hover, .zh-nav li.active { background-color: #e6e8e3; padding-left: 15px; border-left: 3px solid #3e4a3d; color: #111;}
+        .zh-main-content { flex-grow: 1; background: #fff; border: 1px solid #cbd2c6; border-radius: 2px; padding: 25px; }
+        #zh-tab-diary, #zh-tab-friends { display: none; } 
+        #zh-tab-profile { display: block; } 
+        .zh-post { border-bottom: 1px solid #eee; padding-bottom: 20px; margin-bottom: 25px; }
+        .zh-post-date { font-size: 12px; color: #999; margin-bottom: 10px; font-family: 'Noto Sans TC', sans-serif;}
+        .zh-post-content { font-size: 15px; color: #333; line-height: 1.8; }
+        .zh-guestbook-box { background-color: #fafaf8; border: 1px solid #cbd2c6; padding: 15px; margin-top: 20px; border-radius: 2px; }
+        .zh-guestbook-item { margin-bottom: 12px; border-bottom: 1px solid #eee; padding-bottom: 10px; font-size: 13px; line-height: 1.5; color: #333;}
+        .zh-guestbook-name { font-weight: bold; color: #3e4a3d; margin-right: 5px; }
+        .zh-section-title { color: #3e4a3d; border-bottom: 2px solid #cbd2c6; padding-bottom: 5px; margin-bottom: 15px; font-size: 18px; font-family: 'Noto Sans TC', sans-serif; font-weight: 700;}
+        .profile-list .zh-label { font-weight: bold; color: #3e4a3d; width: 80px; flex-shrink: 0; }
+        .friend-card.zh { background-color: #fafaf8; border: 1px solid #cbd2c6; }
+        .friend-card.zh:hover { border-color: #3e4a3d; background-color: #e6e8e3; transform: translateY(-2px); }
+
+        /* ========================================================
+           7. 테마곡 폴더 (Theme Songs) 및 미디어 플레이어
+           ======================================================== */
+        #folder-window { width: 650px; height: 450px; top: 80px; left: 180px; resize: both; }
+        
+        #folder-toolbar {
+            height: 40px; background-color: #f5f6f7; border-bottom: 1px solid #ccc;
+            display: flex; align-items: center; padding: 0 10px; gap: 10px;
+        }
+        #folder-path { flex-grow: 1; height: 24px; border: 1px solid #ccc; padding: 0 10px; font-size: 13px; background: white; outline: none;}
+
+        #folder-content { flex-grow: 1; background-color: #fff; overflow-y: auto; padding: 15px; }
+        .folder-view { display: none; flex-wrap: wrap; gap: 15px; align-content: flex-start; }
+        
+        .file-item {
+            width: 90px; height: 90px; display: flex; flex-direction: column; align-items: center; justify-content: center;
+            cursor: pointer; border: 1px solid transparent; border-radius: 4px; padding: 5px;
+        }
+        .file-item:hover { background-color: rgba(0, 120, 215, 0.1); border-color: rgba(0, 120, 215, 0.3); }
+        .file-item:active { background-color: rgba(0, 120, 215, 0.2); }
+        .file-icon { font-size: 40px; margin-bottom: 8px; }
+        .file-name { font-size: 12px; color: #333; text-align: center; word-break: keep-all; line-height: 1.2; }
+
+        #player-window { 
+            width: 320px; height: 160px; top: 300px; left: 300px; 
+            background: #e8e8e8; border-color: #999; border-radius: 4px; z-index: 600; 
+        }
+        #player-content {
+            padding: 20px; text-align: center; display: flex; flex-direction: column; justify-content: center; height: calc(100% - 30px);
+        }
+        #now-playing-title { font-weight: bold; margin-bottom: 15px; font-size: 14px; color: #333; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .player-controls { display: flex; justify-content: center; gap: 10px; }
+        .player-controls button { font-size: 16px; padding: 5px 20px; cursor: pointer; border: 1px solid #bbb; background: #fdfdfd; border-radius: 3px; }
+        .player-controls button:hover { background: #e0e0e0; }
+/* ========================================================
+           📱 모바일 최적화 (반응형 미디어 쿼리)
+           ======================================================== */
+        @media screen and (max-width: 768px) {
+            /* 1. 바탕화면 및 작업표시줄 */
+            #desktop { gap: 10px; }
+            .icon-container { width: 70px; }
+            .icon-img { font-size: 35px; }
+
+            /* 2. 모든 창을 모바일 전체 화면으로 변경 (드래그 비활성화 느낌) */
+            .draggable-window {
+                width: 100% !important;
+                height: calc(100% - 40px) !important; /* 하단 작업표시줄 제외한 높이 */
+                top: 0 !important;
+                left: 0 !important;
+                border: none;
+                border-radius: 0;
+            }
+
+            /* 3. 인터넷 창 및 야후 페이지 */
+            #browser-toolbar { padding: 0 5px; }
+            .search-container { width: 100%; padding: 0 10px; box-sizing: border-box; }
+            #search-input { width: 100%; }
+            #search-history { left: 10px; width: calc(100% - 110px); }
+            .yahoo-nav { flex-wrap: wrap; justify-content: center; gap: 15px; padding: 0 15px; }
+
+            /* 4. 청해고 홈페이지 */
+            .qh-top-banner { flex-direction: column; text-align: center; padding: 20px; }
+            .qh-nav-menu { flex-wrap: wrap; justify-content: center; padding: 10px; gap: 10px; }
+            .qh-content-wrap { flex-direction: column; padding: 15px; }
+            .club-grid { grid-template-columns: 1fr; } /* 동아리 목록 1열로 */
+            .qh-box { overflow-x: auto; } /* 표(Table) 가로 스크롤 허용 */
+            .qh-info-table, .qh-schedule-table { min-width: 400px; } /* 표가 너무 찌그러지지 않게 */
+
+            /* 5. 공통 SNS 레이아웃 (좌측 프로필, 우측 컨텐츠 -> 위아래로 변경) */
+            .sns-header, .yc-header, .wt-header, .zh-header { 
+                flex-direction: column; align-items: center; gap: 15px; padding: 15px; text-align: center;
+            }
+            .sns-body { flex-direction: column; } /* 핵심: 세로 배치 */
+            
+            .sns-sidebar, .yc-sidebar, .wt-sidebar, .zh-sidebar {
+                width: 100%; align-self: center; display: flex; flex-direction: column; align-items: center; box-sizing: border-box;
+            }
+            .sns-main-content, .yc-main-content, .wt-main-content, .zh-main-content {
+                padding: 15px;
+            }
+
+            /* SNS 네비게이션 가로 배열로 변경 */
+            .sns-nav, .yc-nav, .wt-nav, .zh-nav { 
+                display: flex; justify-content: center; gap: 5px; width: 100%; border-top: 1px dashed #ccc; padding-top: 10px; margin-top: 10px; flex-wrap: wrap;
+            }
+            .sns-nav li, .yc-nav li, .wt-nav li, .zh-nav li { border: none; padding: 5px 10px; border-radius: 20px; background: rgba(0,0,0,0.05); font-size: 13px;}
+            .sns-nav li:hover, .sns-nav li.active, .yc-nav li:hover, .yc-nav li.active, .wt-nav li:hover, .wt-nav li.active, .zh-nav li:hover, .zh-nav li.active {
+                border-left: none; padding-left: 10px; background: rgba(0,0,0,0.1);
+            }
+
+            /* 친구 목록 1열로 */
+            .friend-list-wrap { grid-template-columns: 1fr; }
+            .profile-list .desc { font-size: 13px; }
+
+            /* 6. 폴더 및 미디어 플레이어 */
+            .folder-view { justify-content: center; }
+            #player-content { padding: 10px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="desktop">
+        <div class="icon-container">
+            <div class="icon-img">🗑️</div>
+            <div class="icon-text">휴지통</div>
+        </div>
+
+        <div class="icon-container" ondblclick="openBrowser()">
+            <div class="icon-img">🌐</div>
+            <div class="icon-text">Internet<br>Explorer</div>
+        </div>
+
+        <div class="icon-container" ondblclick="openFolder()">
+            <div class="icon-img">📁</div>
+            <div class="icon-text">那年那個夏天我們- Theme Songs</div>
+        </div>
+    </div>
+
+    <div id="browser-window" class="draggable-window">
+        <div id="browser-titlebar" class="window-titlebar">
+            <div class="title-text">🌐 Internet Explorer</div>
+            <div class="window-controls">
+                <span>─</span>
+                <span>□</span>
+                <span class="close-btn" onclick="closeBrowser()">✕</span>
+            </div>
+        </div>
+        
+        <div id="browser-toolbar">
+            <button class="nav-btn" id="back-btn">←</button>
+            <button class="nav-btn">→</button>
+            <button class="nav-btn">↻</button>
+            <input type="text" id="url-bar" value="https://tw.yahoo.com" readonly>
+        </div>
+
+        <div id="browser-content">
+            <div id="yahoo-page">
+                <div class="yahoo-header">
+                    <div class="yahoo-logo">Yahoo!<span>奇摩</span></div>
+                    <div class="search-container">
+                        <input type="text" id="search-input" placeholder="웹 검색..." autocomplete="off">
+                        <button id="search-btn">搜尋</button>
+                        <ul id="search-history">
+                            <li onclick="navigatePage('qinghai')"><span class="history-icon">🕒</span> 靑海高級中學 (청해고급중학)</li>
+                            <li onclick="navigatePage('haoyu')"><span class="history-icon">🕒</span> 許皓宇 (쉬하오위)</li>
+                            <li onclick="navigatePage('yuchen')"><span class="history-icon">🕒</span> 林彧宸 (린위천)</li>
+                            <li onclick="navigatePage('weiting')"><span class="history-icon">🕒</span> 陳威廷 (천웨이팅)</li>
+                            <li onclick="navigatePage('zihan')"><span class="history-icon">🕒</span> 張子翰 (장쯔한)</li>
+                        </ul>
+                    </div>
+                    <div class="yahoo-nav">
+                        <span>信箱 (메일)</span><span>新聞 (뉴스)</span><span>股市 (증시)</span>
+                        <span>氣象 (날씨)</span><span>運動 (스포츠)</span><span>名人娛樂 (연예)</span>
+                    </div>
+                </div>
+            </div>
+
+            <div id="qinghai-page">
+                <div class="qh-top-banner">
+                    <img src="https://i.postimg.cc/RZsC1mN9/haggyo-makeu.png" alt="청해고 마크" class="qh-logo-img">
+                    <div class="qh-title">
+                        <h1>靑海高級中學</h1>
+                        <p>Qinghai Senior High School</p>
+                    </div>
+                </div>
+
+                <img src="https://i.postimg.cc/Pr9cZrjQ/1.png" alt="청해고 전경" class="qh-main-img">
+                
+                <div class="qh-nav-menu">
+                    <span id="tab-intro" onclick="switchQhTab('intro')">學校簡介 (학교소개)</span>
+                    <span id="tab-notice" class="active" onclick="switchQhTab('notice')">公告資訊 (공지사항)</span>
+                    <span id="tab-life" onclick="switchQhTab('life')">校園生活 (학교생활)</span>
+                    <span id="tab-club" onclick="switchQhTab('club')">學生社團 (학생동아리)</span>
+                </div>
+
+                <div class="qh-marquee">
+                    <marquee scrollamount="5">誠(성실) · 毅(굳셈) · 海(바다) - 바다처럼 넓고 푸른 꿈을 키우는 청해고급중학입니다.</marquee>
+                </div>
+
+                <div class="qh-content-wrap">
+                    <div id="qh-notice-content" class="qh-box">
+                        <h3>📌 最新公告 (최신 공지사항)</h3>
+                        <ul class="qh-notice-list">
+                            <li><span class="date">2015-07-05</span> <div><span class="hot">[필독]</span> 제 15회 바이란진 해양제 자원봉사자 모집 안내</div></li>
+                            <li><span class="date">2015-07-01</span> <div>[안내] 야외 농구장 야간 사용 금지 및 야간 순찰 강화 안내</div></li>
+                            <li><span class="date">2015-06-28</span> <div>2015학년도 야구부 하계 합숙훈련 및 구장 사용 일정</div></li>
+                            <li><span class="date">2015-06-25</span> <div>[동아리] 밴드부 해양제 공연 연습으로 인한特別실 개방 연장 공지</div></li>
+                            <li><span class="date">2015-06-20</span> <div>1학기 기말고사 성적 확인 및 이의신청 기간 안내</div></li>
+                        </ul>
+                    </div>
+
+                    <div id="qh-intro-content" class="qh-box">
+                        <h3>🏫 學校簡介 (학교소개)</h3>
+                        <p style="font-size:14px; color:#555; margin-bottom: 20px;">
+                            바이란진 언덕 중턱에 자리 잡은 청해고급중학은 1960년대에 설립된 공립 보통과 고등학교입니다.<br>
+                            바다를 품은 넒은 시야와 성실함을 바탕으로 지역 사회를 이끌어갈 훌륭한 인재를 양성하고 있습니다.
+                        </p>
+                        <table class="qh-info-table">
+                            <tr><th>設立 (설립)</th><td>1968년 공립 보통과 고급중학 인가</td></tr>
+                            <tr><th>校訓 (교훈)</th><td>誠(성실) · 毅(굳셈) · 海(바다)</td></tr>
+                            <tr><th>規模 (규모)</th><td>학년당 3개 반, 반당 약 30명 (전교생 약 270명)</td></tr>
+                            <tr><th>設施 (시설)</th><td>본관 4층, 별관 2층(특별실, 도서실), 운동장, 야구장 구비</td></tr>
+                            <tr><th>服裝 (교복)</th><td>하복: 흰 반팔 셔츠 + 감색 바지 (가슴 좌측 교명 자수)<br>동복: 흰 와이셔츠 + 감색 긴바지 + 감색 블레이저 (넥타이 없음)</td></tr>
+                        </table>
+                    </div>
+
+                    <div id="qh-life-content" class="qh-box">
+                        <h3>📅 2015年度行事曆 (연간 학사일정)</h3>
+                        <table class="qh-schedule-table">
+                            <tr><th colspan="2" class="term-header">第一學期 (1학기: 2월 ~ 6월)</th></tr>
+                            <tr><td class="month">2月</td><td>1학기 개학</td></tr>
+                            <tr><td class="month">3月</td><td>1차 중간고사</td></tr>
+                            <tr><td class="month">4月</td><td>교내 체육주간 (소규모 반대항전) / 봄 소풍 (1학년 한정)</td></tr>
+                            <tr><td class="month">5月</td><td>1차 기말고사 / 3학년 모의고사 집중 기간</td></tr>
+                            <tr><td class="month">6月</td><td>3학년 졸업식 (초) / 1학기 종업식 (말)</td></tr>
+                            <tr><th colspan="2" class="term-header">暑假 (여름방학: 7월 ~ 8월)</th></tr>
+                            <tr><td class="month highlight-blue">7月</td><td><span class="highlight-blue">야구부 하계 합숙 훈련 (체육관 및 야구장)</span> / <span class="highlight-red">바이란진 해양제 참가</span></td></tr>
+                            <tr><td class="month">8月</td><td>자율 보충수업 (희망자)</td></tr>
+                            <tr><th colspan="2" class="term-header">第二學期 (2학기: 9월 ~ 1월)</th></tr>
+                            <tr><td class="month">9月</td><td>2학기 개학 / 교내 사생대회</td></tr>
+                            <tr><td class="month highlight-red">10月</td><td><span class="highlight-red">교내 체육대회 (반대항 릴레이 및 응원전)</span> / 2차 중간고사</td></tr>
+                            <tr><td class="month">11月</td><td>지방 고교 야구 추계대회</td></tr>
+                            <tr><td class="month">12月</td><td>2차 기말고사 / 크리스마스 학생회 이벤트 / <span class="highlight-blue">2학년 졸업여행 (2박 3일)</span></td></tr>
+                            <tr><td class="month">1月</td><td>2학기 종업식 / 3학년 학과능력측험 (수능)</td></tr>
+                        </table>
+
+                        <h3>🕒 日常作息 (일과 시간표)</h3>
+                        <table class="qh-info-table">
+                            <tr><th>07:30</th><td>등교 완료</td></tr>
+                            <tr><th>07:50 ~ 08:10</th><td>조회 <span class="note-text">(※ 월요일은 운동장 전교 조례)</span></td></tr>
+                            <tr><th>08:10 ~ 12:00</th><td>오전 수업 (1~4교시)</td></tr>
+                            <tr><th>12:10 ~ 13:00</th><td>점심 시간</td></tr>
+                            <tr><th>13:00 ~ 15:50</th><td>오후 수업 (5~7교시)</td></tr>
+                            <tr><th>16:00</th><td>종례 및 하교</td></tr>
+                            <tr><th>16:00 ~ </th><td>방과 후 보충수업 및 동아리 활동 자율 <span class="note-text">(※ 야구부는 18:00까지 연습)</span></td></tr>
+                        </table>
+                    </div>
+
+                    <div id="qh-club-content" class="qh-box">
+                        <h3>🎸 學生社團 (학생동아리)</h3>
+                        <p style="font-size:13px; color:#777; margin-bottom: 20px;">청해고급중학은 학생들의 소질 계발과 건전한 취미 활동을 위하여 다양한 학생 자율 동아리를 운영 및 지원하고 있습니다.</p>
+                        <div class="club-grid">
+                            <div class="club-card">
+                                <h4>⚾ 야구부 (棒球社)</h4>
+                                <p>본교를 대표하는 전통의 체육 동아리입니다. 매년 지방 고교 야구 대회에 참가하여 우수한 성적을 거두고 있으며, 방과 후 전용 구장에서 체력 단련 및 전술 훈련을 진행합니다.</p>
+                                <div class="club-meta">📍 활동 장소: 교내 야구장 및 체육관</div>
+                            </div>
+                            <div class="club-card">
+                                <h4>🎸 밴드부 (熱音社)</h4>
+                                <p>대중음악 연주 및 창작 활동을 목적으로 하는 예술 동아리입니다. 매년 7월 바이란진 해양제 축하 공연 및 교내 체육대회 행사 등에서 주도적인 공연 활동을 펼치고 있습니다.</p>
+                                <div class="club-meta">📍 활동 장소: 별관 1층 음악실</div>
+                            </div>
+                            <div class="club-card">
+                                <h4>📚 도서위원회 (圖書委員會)</h4>
+                                <p>교내 도서실의 체계적인 관리와 학생들의 독서 장려를 위한 학술 봉사 동아리입니다. 장서 분류, 대출 및 반납 시스템 운영, 신간 도서 안내 등의 업무를 담당합니다.</p>
+                                <div class="club-meta">📍 활동 장소: 별관 2층 도서실</div>
+                            </div>
+                            <div class="club-card">
+                                <h4>📷 사진부 (攝影社)</h4>
+                                <p>사진 촬영 기술을 연마하고 교내외 다양한 행사를 기록하는 예술 동아리입니다. 정기적인 교외 촬영 실습을 진행하며, 학기 말 교내 갤러리에서 사진전을 개최합니다.</p>
+                                <div class="club-meta">📍 활동 장소: 본관 3층 동아리실</div>
+                            </div>
+                            <div class="club-card">
+                                <h4>🏊 수영부 (游泳社)</h4>
+                                <p>수중 스포츠를 통한 심신 단련을 목적으로 합니다. 교내 실내 수영장 부재로 인하여, 하절기에는 해양 안전 수칙 준수 하에 지정된 해역에서, 동절기에는 인근 공립 수영장에서 훈련을 진행합니다.</p>
+                                <div class="club-meta">📍 활동 장소: 교외 지정 시설</div>
+                            </div>
+                            <div class="club-card">
+                                <h4>🎙️ 방송부 (廣播社)</h4>
+                                <p>교내 방송 시설을 관리하고 정규 방송 프로그램을 기획 및 송출하는 언론 동아리입니다. 아침 및 점심 방송 운영, 학교 주요 행사 시 음향 기기 지원을 담당합니다.</p>
+                                <div class="club-meta">📍 활동 장소: 본관 2층 방송실</div>
+                            </div>
+                            <div class="club-card">
+                                <h4>🎨 미술부 (美術社)</h4>
+                                <p>다양한 미술 기법을 익히고 창작의 기쁨을 나누는 예술 동아리입니다. 정기적인 크로키 및 스케치 활동을 진행하며, 9월 교내 사생대회 운영을 보조합니다.</p>
+                                <div class="club-meta">📍 활동 장소: 별관 2층 미술실</div>
+                            </div>
+                            <div class="club-card">
+                                <h4>🍳 요리부 (烹飪社)</h4>
+                                <p>식재료에 대한 이해를 높이고 다양한 조리법을 실습하는 생활 동아리입니다. 대만 전통 요리부터 서양식 베이킹까지 폭넓은 실습을 통해 생활의 지혜를 배웁니다.</p>
+                                <div class="club-meta">📍 활동 장소: 본관 1층 가사실습실</div>
+                            </div>
+                            <div class="club-card">
+                                <h4>🔬 과학탐구부 (科學探究社)</h4>
+                                <p>자연 과학 현상에 대한 호기심을 바탕으로 기초적인 실험 및 연구를 수행하는 학술 동아리입니다. 정기적인 교내 실험 실습 및 교외 과학 박람회 견학을 추진합니다.</p>
+                                <div class="club-meta">📍 활동 장소: 별관 1층 과학실</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="sns-haoyu-page">
+                <div class="sns-header">
+                    <div class="sns-title">
+                        <h2>⚾ Hao-Yu's Space ⚾</h2>
+                    </div>
+                    
+                    <div class="sns-bgm-player">
+                        <audio id="haoyu-audio" src="여름날의 포구.mp3"></audio>
+                        <button id="bgm-play-btn" onclick="togglePlay()">▶</button> 
+                        <marquee id="bgm-title" scrollamount="3">夏日的海港 (여름날의 포구)</marquee>
+                        <button onclick="nextSong()">⏩</button>
+                    </div>
+                </div>
+
+                <div class="sns-body">
+                    <div class="sns-sidebar">
+                        <div class="sns-profile-img">
+                            <img src="https://i.postimg.cc/yNpv4sTk/1.png" alt="쉬하오위 프사" style="width: 100%; height: 100%; object-fit: cover;">
+                        </div>
+                        <div style="font-weight: bold; font-size: 16px; margin-bottom: 5px; color: #333;">許皓宇</div>
+                        <div style="font-size: 12px; color: #777;">Male / 17 / 獅子座</div>
+                        
+                        <div class="sns-visitor">
+                            Today : 32 <br> Total : 1,452
+                        </div>
+
+                        <ul class="sns-nav">
+                            <li id="haoyu-tab-profile" class="active" onclick="switchHaoyuTab('profile')">📋 關於我 (프로필)</li>
+                            <li id="haoyu-tab-diary" onclick="switchHaoyuTab('diary')">📝 網誌 (다이어리)</li>
+                            <li id="haoyu-tab-friends" onclick="switchHaoyuTab('friends')">👥 好友列表 (친구 목록)</li>
+                        </ul>
+                    </div>
+
+                    <div class="sns-main-content">
+                        <div id="sns-tab-diary">
+                            <div class="sns-post">
+                                <div class="sns-post-date">2015-08-09 23:15</div>
+                                <div class="sns-post-content">
+                                    啊，訓練結束了。全身都要散架了。☠️<br>
+                                    話說過幾天就是我生日了，我爸不會又要去無人島釣魚吧？<br>
+                                    拜託今年去逛夜市好不好，蛤？？好想吃冰啊啊啊 🍧
+                                </div>
+                                <div class="sns-translation">
+                                    (아 훈련 끝. 온몸이 부서질 것 같음. ☠️<br>
+                                    그나저나 며칠 뒤면 내 생일인데, 우리 아부지 또 무인도 가서 낚시하자고 하는 거 아니겠지?<br>
+                                    제발 올해는 야시장 좀 가자고 어?? 빙수 먹고 싶다아아악 🍧)
+                                </div>
+                            </div>
+
+                            <div class="sns-post">
+                                <div class="sns-post-date">2015-07-28 14:30</div>
+                                <div class="sns-post-content">
+                                    棒球社暑假集訓簡直是地獄。<br>
+                                    睡體育館地板就算了，張子翰打呼聲到底要怎麼辦。昨天連耳塞都擋不住。🤬<br>
+                                    救命啊.....
+                                </div>
+                                <div class="sns-translation">
+                                    (야구부 하계 합숙 진짜 지옥이다.<br>
+                                    체육관 바닥에서 자는 건 참겠는데, 장쯔한 코골이 진짜 어떡할 거냐고. 어제 귀마개 뚫고 들어옴. 🤬<br>
+                                    살려줘.....)
+                                </div>
+                            </div>
+
+                            <div class="guestbook-box">
+                                <div style="font-weight:bold; margin-bottom:15px; color:#FF6B6B; font-size: 16px;">📝 Recent Messages</div>
+                                <div class="guestbook-item">
+                                    <span class="guestbook-name">阿廷 (아팅)</span> 喂，你昨天說因為打呼聲沒睡好哈哈哈，所以早上才在長椅上張著嘴睡覺嗎？我有拍照存證囉 掰
+                                    <div style="font-size: 11px; color:#999; margin-top:3px;">(야 너 어제 코골이 땜에 못 잤다며ㅋㅋㅋ 그래서 아침에 벤치에서 입 벌리고 잔 거냐? 사진 찍어둠 ㅅㄱ)</div>
+                                </div>
+                                <div class="guestbook-item">
+                                    <span class="guestbook-name">彧宸 (위천)</span> 相簿資料夾整理一下。棒球分類裡為什麼會放夜市吃播的照片。
+                                    <div style="font-size: 11px; color:#999; margin-top:3px;">(사진첩 폴더 정리 좀 해. 야구 카테고리에 왜 야시장 먹방 사진이 올라와 있는 건데.)</div>
+                                </div>
+                                <div class="guestbook-item" style="border-bottom:none;">
+                                    <span class="guestbook-name">子翰 (쯔한)</span> 我沒有打呼。
+                                    <div style="font-size: 11px; color:#999; margin-top:3px;">(나 코 안 골아.)</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="sns-tab-profile">
+                            <div class="profile-section">
+                                <h3>👤 關於我 (About Me)</h3>
+                                <ul class="profile-list">
+                                    <li><span class="label">姓名</span> 
+                                        <div class="desc">許皓宇 <span class="trans">(쉬하오위 / 애칭: 하오)</span></div>
+                                    </li>
+                                    <li><span class="label">生日</span> 
+                                        <div class="desc">1998.08.09 <span class="trans">(사자자리)</span></div>
+                                    </li>
+                                    <li><span class="label">社團</span> 
+                                        <div class="desc">靑海高級中學 棒球社 <span class="trans">(청해고 야구부 외야수 / 팀 분위기 메이커)</span></div>
+                                    </li>
+                                    <li><span class="label">特徵</span> 
+                                        <div class="desc">身高 178cm / 黑褐髮 金眼 / 左鎖骨下有疤痕 <span class="trans">(키 178cm / 흑갈발, 금안 / 좌측 쇄골 아래 어릴 때 넘어져서 생긴 흉터 있음)</span></div>
+                                    </li>
+                                    <li><span class="label">香氣</span> 
+                                        <div class="desc">Top: 葡萄柚 (자몽) / Middle: 海鹽 (소금), 羅勒 (바질) / Base: 亞麻 (린넨), 椰子水 (코코넛워터), 乾燥木 (드라이 우드)</div>
+                                    </li>
+                                    <li><span class="label">性格</span> 
+                                        <div class="desc">ENTP+7w6+so/sx+無害的開朗+很會親近人 <span class="trans">(ENTP+7w6+so/sx+무해한 쾌활함+붙임성 좋음)</span></div>
+                                    </li>
+                                </ul>
+                            </div>
+
+                            <div class="profile-section">
+                                <h3>❤️ 喜歡與討厭 (Likes & Dislikes)</h3>
+                                <ul class="profile-list">
+                                    <li><span class="label" style="color:#0078D7;">喜歡 (好)</span> 
+                                        <div class="desc">海, 棒球, 逛夜市, 認識新朋友, 午睡 <span class="trans">(바다, 야구, 야시장 탐방, 새로운 사람, 낮잠)</span></div>
+                                    </li>
+                                    <li><span class="label" style="color:#d32f2f;">討厭 (不好)</span> 
+                                        <div class="desc">長久的沉默, 獨處的夜晚, 數學, 悶熱的梅雨季 <span class="trans">(긴 침묵, 혼자 있는 밤, 수학, 꿉꿉한 장마철)</span></div>
+                                    </li>
+                                </ul>
+                            </div>
+
+                            <div class="profile-section">
+                                <h3>💡 TMI</h3>
+                                <div class="tmi-box">
+                                    - 音痴<br>
+                                    <span style="color:#999; font-size:11px;">(음치)</span><br><br>
+                                    - 喝冰紅茶一定要插兩根吸管 (為了喝快一點)<br>
+                                    <span style="color:#999; font-size:11px;">(얼음홍차에 빨대 2개 꽂기. 빨리 마시려고)</span><br><br>
+                                    - 睡相很差<br>
+                                    <span style="color:#999; font-size:11px;">(잠버릇 나쁨)</span><br><br>
+                                    - 還有留著小學時用的棒球手套，和某人給的貝殼<br>
+                                    <span style="color:#999; font-size:11px;">(초등학생 때 쓰던 글러브와 누군가 준 조개껍데기를 아직 보관 중)</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="sns-tab-friends">
+                            <div class="profile-section">
+                                <h3>👥 好友列表 (Friend List)</h3>
+                                <div class="friend-list-wrap">
+                                    <div class="friend-card hy" onclick="navigatePage('yuchen')">
+                                        <div class="friend-img" style="border-color: #4A5D6E;">
+                                            <img src="https://i.postimg.cc/j2mW6ktD/2.png" alt="린위천 프사" style="width: 100%; height: 100%; object-fit: cover;">
+                                        </div>
+                                        <div class="friend-info">
+                                            <h4>林彧宸 (린위천)</h4>
+                                            <p>도서위원회 위원장, 학급 반장</p>
+                                        </div>
+                                    </div>
+                                    <div class="friend-card hy" onclick="navigatePage('weiting')">
+                                        <div class="friend-img" style="border-color: #8B0000;">
+                                            <img src="https://i.postimg.cc/nVPQtM7q/3.png" alt="천웨이팅 프사" style="width: 100%; height: 100%; object-fit: cover;">
+                                        </div>
+                                        <div class="friend-info">
+                                            <h4>陳威廷 (천웨이팅)</h4>
+                                            <p>밴드부 베이스 담당</p>
+                                        </div>
+                                    </div>
+                                    <div class="friend-card hy" onclick="navigatePage('zihan')">
+                                        <div class="friend-img" style="border-color: #3e4a3d;">
+                                            <img src="https://i.postimg.cc/52jwwKTd/4.jpg" alt="장쯔한 프사" style="width: 100%; height: 100%; object-fit: cover;">
+                                        </div>
+                                        <div class="friend-info">
+                                            <h4>張子翰 (장쯔한)</h4>
+                                            <p>야구부 정포수</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="sns-yuchen-page">
+                <div class="yc-header">
+                    <div class="yc-title">
+                        <h2>林彧宸的空間</h2>
+                    </div>
+                    
+                    <div class="sns-bgm-player" style="border-color: rgba(255,255,255,0.3); background: rgba(0,0,0,0.1);">
+                        <audio id="yuchen-audio" src="사실은.mp3"></audio>
+                        <button id="yc-bgm-play-btn" onclick="toggleYcPlay()">▶</button> 
+                        <marquee id="yc-bgm-title" scrollamount="3">其實 (사실은)</marquee>
+                        <button onclick="nextYcSong()">⏩</button>
+                    </div>
+                </div>
+
+                <div class="sns-body">
+                    <div class="yc-sidebar">
+                        <div class="yc-profile-img">
+                            <img src="https://i.postimg.cc/j2mW6ktD/2.png" alt="린위천 프사" style="width: 100%; height: 100%; object-fit: cover;">
+                        </div>
+                        <div style="font-weight: bold; font-size: 16px; margin-bottom: 5px; color: #333;">林彧宸</div>
+                        <div style="font-size: 12px; color: #777;">Male / 17 / 雙魚座</div>
+                        
+                        <div class="yc-visitor">
+                            Today : 12 <br> Total : 4,021
+                        </div>
+
+                        <ul class="yc-nav">
+                            <li id="yc-nav-profile" class="active" onclick="switchYuchenTab('profile')">📋 關於我 (프로필)</li>
+                            <li id="yc-nav-diary" onclick="switchYuchenTab('diary')">📝 網誌 (다이어리)</li>
+                            <li id="yc-nav-friends" onclick="switchYuchenTab('friends')">👥 好友列表 (친구 목록)</li>
+                        </ul>
+                    </div>
+
+                    <div class="yc-main-content">
+                        <div id="yc-tab-diary">
+                            <div class="yc-post">
+                                <div class="yc-post-date">2015-08-08 23:45</div>
+                                <div class="yc-post-content">
+                                    明日的便當菜色需要變更。雞蛋用完了。<br>
+                                    今日圖書館的自習環境極不理想，特別是棒球社的社員過於喧嘩。已提醒三次。<br>
+                                    明日需早起複習英文單字。
+                                </div>
+                                <div class="sns-translation" style="border-left-color: #4A5D6E;">
+                                    (내일 도시락 반찬은 변경해야겠다. 계란이 다 떨어짐.<br>
+                                    오늘 도서실 자습 환경은 매우 불만족스러웠다. 특히 야구부원들이 너무 소란스러웠음. 3번 경고함.<br>
+                                    내일은 일찍 일어나서 영어 단어 복습해야됨.)
+                                </div>
+                            </div>
+
+                            <div class="yc-guestbook-box">
+                                <div style="font-weight:bold; margin-bottom:15px; color:#4A5D6E; font-size: 14px;">📝 留言板 (방명록)</div>
+                                
+                                <div class="yc-guestbook-item">
+                                    <span class="guestbook-name" style="color:#FF6B6B;">皓宇 (하오위)</span> 欸！班長！你今天太嚴格了吧！我們只是在討論戰術而已啊！
+                                    <div style="font-size: 11px; color:#999; margin-top:3px;">(야! 반장! 너 오늘 너무 엄격한 거 아냐! 우리 그냥 전술 회의 한 거라고!)</div>
+                                </div>
+                                
+                                <div class="yc-guestbook-item" style="border-bottom:none; padding-left: 20px; background: #fff; padding: 10px; border-radius: 4px;">
+                                    <span class="yc-guestbook-name">彧宸 (위천) 回覆:</span> 圖書館內禁止喧嘩是基本規定。要討論戰術請去體育館或棒球場。再有下次，我會沒收你們的社團借書證。
+                                    <div style="font-size: 11px; color:#999; margin-top:3px;">(도서실 내 정숙은 기본 규정이야. 전술 회의는 체육관이나 야구장에서 해. 한 번만 더 그러면 동아리 대출증 압수할 거임.)</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="yc-tab-profile">
+                            <div class="profile-section">
+                                <h3 class="yc-section-title">👤 關於我 (About Me)</h3>
+                                <ul class="profile-list">
+                                    <li><span class="yc-label">姓名</span> 
+                                        <div class="desc">林彧宸 <span class="trans">(린위천 / 애칭: 위천)</span></div>
+                                    </li>
+                                    <li><span class="yc-label">生日</span> 
+                                        <div class="desc">1998.03.14 <span class="trans">(물고기자리)</span></div>
+                                    </li>
+                                    <li><span class="yc-label">所屬</span> 
+                                        <div class="desc">靑海高級中學 圖書委員會 委員長 / 班長 <span class="trans">(청해고 도서위원장 겸 학급 반장)</span></div>
+                                    </li>
+                                    <li><span class="yc-label">特徵</span> 
+                                        <div class="desc">身高 176cm / 黑髮 濃灰褐眼 <span class="trans">(키 176cm / 흑발, 짙은 회갈색 눈동자)</span></div>
+                                    </li>
+                                    <li><span class="yc-label">香氣</span> 
+                                        <div class="desc">Top: 白茶 (화이트티), 佛手柑 (베르가못) / Middle: 鳶尾花 (아이리스), 乾淨紙張 (깨끗한 종이) / Base: 檀香木 (샌달우드), 琥珀 (미세한 앰버)</div>
+                                    </li>
+                                    <li><span class="yc-label">性格</span> 
+                                        <div class="desc">ISTJ+1w9+sp/so+完美主義+表面平靜 <span class="trans">(ISTJ+1w9+sp/so+완벽주의+표면적 차분함)</span></div>
+                                    </li>
+                                </ul>
+                            </div>
+
+                            <div class="profile-section">
+                                <h3 class="yc-section-title">♥️ 喜歡與討厭 (Likes & Dislikes)</h3>
+                                <ul class="profile-list">
+                                    <li><span class="yc-label" style="color:#0078D7;">喜歡 (好)</span> 
+                                        <div class="desc">整齊的書架, 安靜的清晨, 母親做的牛肉麵, 出水均勻的原子筆 <span class="trans">(정돈된 책장, 조용한 새벽, 엄마가 쉬는 날 해주는 우육면, 잉크가 균일하게 나오는 볼펜)</span></div>
+                                    </li>
+                                    <li><span class="yc-label" style="color:#d32f2f;">討厭 (不好)</span> 
+                                        <div class="desc">無預警的肢體接觸, 吵鬧的運動會, "你什麼都做得好"這句話 <span class="trans">(예고 없는 신체접촉, 시끄러운 체육대회, "넌 다 잘하잖아" 같은 말)</span></div>
+                                    </li>
+                                </ul>
+                            </div>
+
+                            <div class="profile-section">
+                                <h3 class="yc-section-title">💡 TMI</h3>
+                                <div class="tmi-box" style="border-color: #d0d7de; background-color: #f8f9fa;">
+                                    - 每天親自帶便當，菜色幾乎永遠一樣<br>
+                                    <span style="color:#999; font-size:11px;">(매일 동일한 반찬 배치로 직접 도시락을 쌈)</span><br><br>
+                                    - 為了符合母親期望選擇了理科，但其實更偏好歷史<br>
+                                    <span style="color:#999; font-size:11px;">(어머니 기대에 맞춰 이과를 선택했지만 사실 역사를 더 좋아함)</span><br><br>
+                                    - 每天睡前一定會在手帳上寫下明天的待辦事項<br>
+                                    <span style="color:#999; font-size:11px;">(매일 밤 자기 전 수첩에 내일 할 일을 기록함)</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="yc-tab-friends">
+                            <div class="profile-section">
+                                <h3 class="yc-section-title">👥 好友列表 (Friend List)</h3>
+                                <div class="friend-list-wrap">
+                                    <div class="friend-card yc" onclick="navigatePage('haoyu')">
+                                        <div class="friend-img" style="border-color: #FF6B6B;">
+                                            <img src="https://i.postimg.cc/yNpv4sTk/1.png" alt="쉬하오위 프사" style="width: 100%; height: 100%; object-fit: cover;">
+                                        </div>
+                                        <div class="friend-info">
+                                            <h4 style="color:#4A5D6E;">許皓宇 (쉬하오위)</h4>
+                                            <p>야구부 외야수 / 시끄러움</p>
+                                        </div>
+                                    </div>
+                                    <div class="friend-card yc" onclick="navigatePage('weiting')">
+                                        <div class="friend-img" style="border-color: #8B0000;">
+                                            <img src="https://i.postimg.cc/nVPQtM7q/3.png" alt="천웨이팅 프사" style="width: 100%; height: 100%; object-fit: cover;">
+                                        </div>
+                                        <div class="friend-info">
+                                            <h4 style="color:#4A5D6E;">陳威廷 (천웨이팅)</h4>
+                                            <p>밴드부 베이스 담당</p>
+                                        </div>
+                                    </div>
+                                    <div class="friend-card yc" onclick="navigatePage('zihan')">
+                                        <div class="friend-img" style="border-color: #3e4a3d;">
+                                            <img src="https://i.postimg.cc/52jwwKTd/4.jpg" alt="장쯔한 프사" style="width: 100%; height: 100%; object-fit: cover;">
+                                        </div>
+                                        <div class="friend-info">
+                                            <h4 style="color:#4A5D6E;">張子翰 (장쯔한)</h4>
+                                            <p>야구부 정포수</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="sns-weiting-page">
+                <div class="wt-header">
+                    <div class="wt-title">
+                        <h2>WT's Vibe</h2>
+                    </div>
+                    
+                    <div class="sns-bgm-player" style="border-color: rgba(255,255,255,0.2); background: rgba(0,0,0,0.3);">
+                        <audio id="weiting-audio" src="시끄러워.mp3"></audio>
+                        <button id="wt-bgm-play-btn" onclick="toggleWtPlay()">▶</button> 
+                        <marquee id="wt-bgm-title" scrollamount="3">太吵了 (시끄러워)</marquee>
+                        <button onclick="nextWtSong()">⏩</button>
+                    </div>
+                </div>
+
+                <div class="sns-body">
+                    <div class="wt-sidebar">
+                        <div class="wt-profile-img">
+                            <img src="https://i.postimg.cc/nVPQtM7q/3.png" alt="천웨이팅 프사" style="width: 100%; height: 100%; object-fit: cover;">
+                        </div>
+                        <div style="font-weight: bold; font-size: 16px; margin-bottom: 5px; color: #fff;">陳威廷</div>
+                        <div style="font-size: 12px; color: #999;">Male / 17 / 天蠍座</div>
+                        
+                        <div class="wt-visitor">
+                            Today : 89 <br> Total : 6,241
+                        </div>
+
+                        <ul class="wt-nav">
+                            <li id="wt-nav-profile" class="active" onclick="switchWeitingTab('profile')">📋 關於我 (프로필)</li>
+                            <li id="wt-nav-diary" onclick="switchWeitingTab('diary')">📝 網誌 (다이어리)</li>
+                            <li id="wt-nav-friends" onclick="switchWeitingTab('friends')">👥 好友列表 (친구 목록)</li>
+                        </ul>
+                    </div>
+
+                    <div class="wt-main-content">
+                        <div id="wt-tab-diary">
+                            <div class="wt-post">
+                                <div class="wt-post-date">2015-08-09 02:15</div>
+                                <div class="wt-post-content">
+                                    哈哈哈哈靠北！今天夜市那家雞排到底加了什麼，辣到我現在還睡不著！🔥🔥<br>
+                                    反正也睡不著，乾脆去兜風好了。有沒有人要出來啊？<br>
+                                    喔對，大家都睡得跟豬一樣🐷
+                                </div>
+                                <div class="sns-translation" style="border-left-color: #8B0000; background: #f9f9f9;">
+                                    (하하하하 미친! 오늘 야시장 그 지파이에 대체 뭘 넣은 거야, 매워서 아직도 잠이 안 오네! 🔥🔥<br>
+                                    어차피 잠도 안 오는데 그냥 드라이브나 갈까. 나올 사람?<br>
+                                    아 맞다, 다들 돼지처럼 자고 있겠지 🐷)
+                                </div>
+                            </div>
+
+                            <div class="wt-guestbook-box">
+                                <div style="font-weight:bold; margin-bottom:15px; color:#8B0000; font-size: 14px;">📝 留言板 (방명록)</div>
+                                
+                                <div class="wt-guestbook-item">
+                                    <span class="wt-guestbook-name" style="color:#3e4a3d;">子翰 (쯔한)</span> 吵死了。
+                                    <div style="font-size: 11px; color:#999; margin-top:3px;">(시끄러워.)</div>
+                                </div>
+                                
+                                <div class="wt-guestbook-item" style="border-bottom:none; padding-left: 20px; background: #fff; padding: 10px; border-radius: 4px; border-left: 3px solid #8B0000;">
+                                    <span class="wt-guestbook-name">阿廷 (웨이팅) 回覆:</span> 靠，張子翰你居然醒著！出來吃宵夜啊！我請客！
+                                    <div style="font-size: 11px; color:#999; margin-top:3px;">(헐, 장쯔한 너 깨어있었냐! 나와 야식 먹자! 내가 쏜다!)</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="wt-tab-profile">
+                            <div class="profile-section">
+                                <h3 class="wt-section-title">👤 關於我 (About Me)</h3>
+                                <ul class="profile-list">
+                                    <li><span class="wt-label">姓名</span> 
+                                        <div class="desc">陳威廷 <span class="trans">(천웨이팅 / 애칭: 아팅)</span></div>
+                                    </li>
+                                    <li><span class="wt-label">生日</span> 
+                                        <div class="desc">1998.11.12 <span class="trans">(전갈자리)</span></div>
+                                    </li>
+                                    <li><span class="wt-label">所屬</span> 
+                                        <div class="desc">靑海高級中學 熱音社 貝斯手 <span class="trans">(청해고 밴드부 베이스 담당)</span></div>
+                                    </li>
+                                    <li><span class="wt-label">特徵</span> 
+                                        <div class="desc">身高 175cm / 濃赤褐髮 濃黑褐眼 / 雙耳穿洞 舊皮手環 <span class="trans">(키 175cm / 짙은 적갈발, 짙은 흑갈안 / 양측 귀 피어싱, 낡은 가죽 팔찌)</span></div>
+                                    </li>
+                                    <li><span class="wt-label">香氣</span> 
+                                        <div class="desc">Top: 檸檬 (레몬), 黑胡椒 (블랙페퍼) / Middle: 金屬味 (일렉트릭 기타 현의 금속 냄새), 菸草味 (약간의 담배 연기) / Base: 廣藿香 (패출리), 舊皮革 (낡은 가죽)</div>
+                                    </li>
+                                    <li><span class="wt-label">性格</span> 
+                                        <div class="desc">ESTP+7w8+sx/sp+過度活力+直覺型行動派 <span class="trans">(ESTP+7w8+sx/sp+과잉 활력+직감형 행동파)</span></div>
+                                    </li>
+                                </ul>
+                            </div>
+
+                            <div class="profile-section">
+                                <h3 class="wt-section-title">♥️ 喜歡與討厭 (Likes & Dislikes)</h3>
+                                <ul class="profile-list">
+                                    <li><span class="wt-label" style="color:#0078D7;">喜歡 (好)</span> 
+                                        <div class="desc">吵鬧的音樂, 夜市, 機車, 熬夜到凌晨, 天地米絲炒麵 <span class="trans">(시끄러운 음악, 야시장, 오토바이, 새벽까지 깨어있는 것, 천지미스 볶음면)</span></div>
+                                    </li>
+                                    <li><span class="wt-label" style="color:#d32f2f;">討厭 (不好)</span> 
+                                        <div class="desc">安靜的家, "你爸爸呢？"這種問題, 同情的眼神, 梅雨季天花板漏水聲 <span class="trans">(조용한 집, "너네 아빠는?" 같은 질문, 동정 어린 눈빛, 장마철 천장 물새는 소리)</span></div>
+                                    </li>
+                                </ul>
+                            </div>
+
+                            <div class="profile-section">
+                                <h3 class="wt-section-title">💡 TMI</h3>
+                                <div class="tmi-box" style="border-color: #ddd; background-color: #f4f4f4;">
+                                    - 貝斯自學。看不懂樂譜<br>
+                                    <span style="color:#999; font-size:11px;">(베이스 독학. 악보 못 읽음)</span><br><br>
+                                    - 天地米絲廚房助手。炒菜很熟練<br>
+                                    <span style="color:#999; font-size:11px;">(천지미스 주방 보조. 볶음 요리 능숙함)</span><br><br>
+                                    - 一直戴著的手環是第一任繼父給的<br>
+                                    <span style="color:#999; font-size:11px;">(항상 착용하는 팔찌는 첫 번째 새아빠가 준 것)</span><br><br>
+                                    - 因為失眠，凌晨會騎腳踏車兜風<br>
+                                    <span style="color:#999; font-size:11px;">(불면증 때문에 새벽에 자전거 라이딩을 즐김)</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="wt-tab-friends">
+                            <div class="profile-section">
+                                <h3 class="wt-section-title">👥 好友列表 (Friend List)</h3>
+                                <div class="friend-list-wrap">
+                                    <div class="friend-card wt" onclick="navigatePage('haoyu')">
+                                        <div class="friend-img" style="border-color: #FF6B6B;">
+                                            <img src="https://i.postimg.cc/yNpv4sTk/1.png" alt="쉬하오위 프사" style="width: 100%; height: 100%; object-fit: cover;">
+                                        </div>
+                                        <div class="friend-info">
+                                            <h4 style="color:#8B0000;">許皓宇 (쉬하오위)</h4>
+                                            <p>야구부 외야수 / 시끄러움</p>
+                                        </div>
+                                    </div>
+                                    <div class="friend-card wt" onclick="navigatePage('yuchen')">
+                                        <div class="friend-img" style="border-color: #4A5D6E;">
+                                            <img src="https://i.postimg.cc/j2mW6ktD/2.png" alt="린위천 프사" style="width: 100%; height: 100%; object-fit: cover;">
+                                        </div>
+                                        <div class="friend-info">
+                                            <h4 style="color:#8B0000;">林彧宸 (린위천)</h4>
+                                            <p>도서위원회 위원장, 학급 반장</p>
+                                        </div>
+                                    </div>
+                                    <div class="friend-card wt" onclick="navigatePage('zihan')">
+                                        <div class="friend-img" style="border-color: #3e4a3d;">
+                                            <img src="https://i.postimg.cc/52jwwKTd/4.jpg" alt="장쯔한 프사" style="width: 100%; height: 100%; object-fit: cover;">
+                                        </div>
+                                        <div class="friend-info">
+                                            <h4 style="color:#8B0000;">張子翰 (장쯔한)</h4>
+                                            <p>야구부 정포수</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="sns-zihan-page">
+                <div class="zh-header">
+                    <div class="zh-title">
+                        <h2>Zi-Han</h2>
+                    </div>
+                    
+                    <div class="sns-bgm-player" style="border-color: rgba(255,255,255,0.4); background: rgba(0,0,0,0.2);">
+                        <audio id="zihan-audio" src="침묵.mp3"></audio>
+                        <button id="zh-bgm-play-btn" onclick="toggleZhPlay()">▶</button> 
+                        <marquee id="zh-bgm-title" scrollamount="3">沉默 (침묵)</marquee>
+                        <button onclick="nextZhSong()">⏩</button>
+                    </div>
+                </div>
+
+                <div class="sns-body">
+                    <div class="zh-sidebar">
+                        <div class="zh-profile-img">
+                            <img src="https://i.postimg.cc/52jwwKTd/4.jpg" alt="장쯔한 프사" style="width: 100%; height: 100%; object-fit: cover;">
+                        </div>
+                        <div style="font-weight: bold; font-size: 16px; margin-bottom: 5px; color: #111;">張子翰</div>
+                        <div style="font-size: 12px; color: #666;">Male / 17 / 魔羯座</div>
+                        
+                        <div class="zh-visitor">
+                            Today : 3 <br> Total : 812
+                        </div>
+
+                        <ul class="zh-nav">
+                            <li id="zh-nav-profile" class="active" onclick="switchZihanTab('profile')">📋 關於我 (프로필)</li>
+                            <li id="zh-nav-diary" onclick="switchZihanTab('diary')">📝 網誌 (다이어리)</li>
+                            <li id="zh-nav-friends" onclick="switchZihanTab('friends')">👥 好友列表 (친구 목록)</li>
+                        </ul>
+                    </div>
+
+                    <div class="zh-main-content">
+                        <div id="zh-tab-diary">
+                            <div class="zh-post">
+                                <div class="zh-post-date">2015-08-09 21:00</div>
+                                <div class="zh-post-content">
+                                    訓練結束。<br>
+                                    爺爺的漁船引擎聲音有點怪，明天去看看。
+                                </div>
+                                <div class="sns-translation" style="border-left-color: #3e4a3d; background: #fafaf8;">
+                                    (훈련 끝.<br>
+                                    할아버지 어선 엔진 소리가 좀 이상함. 내일 가봐야겠다.)
+                                </div>
+                            </div>
+
+                            <div class="zh-guestbook-box">
+                                <div style="font-weight:bold; margin-bottom:15px; color:#3e4a3d; font-size: 14px;">📝 留言板 (방명록)</div>
+                                
+                                <div class="zh-guestbook-item">
+                                    <span class="zh-guestbook-name" style="color:#FF6B6B;">皓宇 (하오위)</span> 子翰！！明天記得幫我帶早餐！！我要鮪魚蛋餅加大冰奶！！
+                                    <div style="font-size: 11px; color:#999; margin-top:3px;">(쯔한!! 내일 내 아침 챙겨주는 거 잊지 마!! 참치 계란말이에 큰 아이스 밀크티!!)</div>
+                                </div>
+                                
+                                <div class="zh-guestbook-item" style="border-bottom:none; padding-left: 20px; background: #fff; padding: 10px; border-radius: 2px; border-left: 3px solid #3e4a3d;">
+                                    <span class="zh-guestbook-name">子翰 (쯔한) 回覆:</span> 錢。
+                                    <div style="font-size: 11px; color:#999; margin-top:3px;">(돈 줘.)</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="zh-tab-profile">
+                            <div class="profile-section">
+                                <h3 class="zh-section-title">👤 關於我 (About Me)</h3>
+                                <ul class="profile-list">
+                                    <li><span class="zh-label">姓名</span> 
+                                        <div class="desc">張子翰 <span class="trans">(장쯔한 / 애칭: 쯔한)</span></div>
+                                    </li>
+                                    <li><span class="zh-label">生日</span> 
+                                        <div class="desc">1998.01.03 <span class="trans">(염소자리)</span></div>
+                                    </li>
+                                    <li><span class="zh-label">所屬</span> 
+                                        <div class="desc">靑海高級中學 棒球社 捕手 <span class="trans">(청해고 야구부 정포수)</span></div>
+                                    </li>
+                                    <li><span class="zh-label">特徵</span> 
+                                        <div class="desc">身高 183cm / 黑髮 古銅色皮膚 濃黑褐眼 / 左下眼睑痣 <span class="trans">(키 183cm / 흑발, 구릿빛 피부, 짙은 흑갈색 눈동자 / 좌측 눈 밑 점)</span></div>
+                                    </li>
+                                    <li><span class="zh-label">香氣</span> 
+                                        <div class="desc">Top: 扁柏 (편백), 尤加利 (유칼립투스) / Middle: 濕泥土 (젖은 흙), 微弱的汗水 (미약한 땀) / Base: 雪松 (시더우드), 皮革 (가죽)</div>
+                                    </li>
+                                    <li><span class="zh-label">性格</span> 
+                                        <div class="desc">ISTP+9w8+sp/sx+寡言+自我步調+行動派 <span class="trans">(ISTP+9w8+sp/sx+과묵+마이페이스+행동으로 보여주는 타입)</span></div>
+                                    </li>
+                                </ul>
+                            </div>
+
+                            <div class="profile-section">
+                                <h3 class="zh-section-title">♥️ 喜歡與討厭 (Likes & Dislikes)</h3>
+                                <ul class="profile-list">
+                                    <li><span class="zh-label" style="color:#0078D7;">喜歡 (好)</span> 
+                                        <div class="desc">釣魚, 散步, 幫爺爺整理漁船, 練習後坐在長椅上的時間, 肉 <span class="trans">(낚시, 산책, 할아버지 어선 손질 돕기, 연습 후 벤치에 앉아있는 시간, 고기)</span></div>
+                                    </li>
+                                    <li><span class="zh-label" style="color:#d32f2f;">討厭 (不好)</span> 
+                                        <div class="desc">強迫長談, 吵鬧的KTV, 說謊, 下雨天聞不到泥土味的時候 <span class="trans">(긴 대화 강요, 떠들썩한 노래방, 거짓말, 비 오는 날 흙냄새가 안 날 때)</span></div>
+                                    </li>
+                                </ul>
+                            </div>
+
+                            <div class="profile-section">
+                                <h3 class="zh-section-title">💡 TMI</h3>
+                                <div class="tmi-box" style="border-color: #cbd2c6; background-color: #fafaf8;">
+                                    - 包包上掛著爺爺刻的木雕魚鑰匙圈<br>
+                                    <span style="color:#999; font-size:11px;">(가방에 할아버지가 깎아주신 물고기 목각 키링을 달고 다님)</span><br><br>
+                                    - 大胃王。要吃兩個便當<br>
+                                    <span style="color:#999; font-size:11px;">(대식가. 매일 도시락 2개씩 먹음)</span><br><br>
+                                    - 很受貓咪歡迎。每天給學校後面的流浪貓餵食<br>
+                                    <span style="color:#999; font-size:11px;">(고양이가 잘 따름. 학교 뒤편 길고양이에게 매일 사료를 챙겨줌)</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="zh-tab-friends">
+                            <div class="profile-section">
+                                <h3 class="zh-section-title">👥 好友列表 (Friend List)</h3>
+                                <div class="friend-list-wrap">
+                                    <div class="friend-card zh" onclick="navigatePage('haoyu')">
+                                        <div class="friend-img" style="border-color: #FF6B6B;">
+                                            <img src="https://i.postimg.cc/yNpv4sTk/1.png" alt="쉬하오위 프사" style="width: 100%; height: 100%; object-fit: cover;">
+                                        </div>
+                                        <div class="friend-info">
+                                            <h4 style="color:#3e4a3d;">許皓宇 (쉬하오위)</h4>
+                                            <p>야구부 외야수 / 시끄러움</p>
+                                        </div>
+                                    </div>
+                                    <div class="friend-card zh" onclick="navigatePage('yuchen')">
+                                        <div class="friend-img" style="border-color: #4A5D6E;">
+                                            <img src="https://i.postimg.cc/j2mW6ktD/2.png" alt="린위천 프사" style="width: 100%; height: 100%; object-fit: cover;">
+                                        </div>
+                                        <div class="friend-info">
+                                            <h4 style="color:#3e4a3d;">林彧宸 (린위천)</h4>
+                                            <p>도서위원회 위원장, 학급 반장</p>
+                                        </div>
+                                    </div>
+                                    <div class="friend-card zh" onclick="navigatePage('weiting')">
+                                        <div class="friend-img" style="border-color: #8B0000;">
+                                            <img src="https://i.postimg.cc/nVPQtM7q/3.png" alt="천웨이팅 프사" style="width: 100%; height: 100%; object-fit: cover;">
+                                        </div>
+                                        <div class="friend-info">
+                                            <h4 style="color:#3e4a3d;">陳威廷 (천웨이팅)</h4>
+                                            <p>밴드부 베이스 담당</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <div id="folder-window" class="draggable-window">
+        <div id="folder-titlebar" class="window-titlebar">
+            <div class="title-text">📁 那年那個夏天我們 - Theme Songs</div>
+            <div class="window-controls">
+                <span>─</span>
+                <span>□</span>
+                <span class="close-btn" onclick="closeFolder()">✕</span>
+            </div>
+        </div>
+        <div id="folder-toolbar">
+            <button class="nav-btn" onclick="navFolder('root')">←</button>
+            <input type="text" id="folder-path" value="C:\Users\Desktop\Theme Songs" readonly>
+        </div>
+        <div id="folder-content">
+            
+            <div id="folder-view-root" class="folder-view" style="display: flex;">
+                <div class="file-item" onclick="openPlayer('푸른 선을 따라서.mp3', '沿著藍色的線 (푸른 선을 따라서)')">
+                    <div class="file-icon">🎵</div>
+                    <div class="file-name">沿著藍色的線.mp3</div>
+                </div>
+                <div class="file-item" onclick="navFolder('haoyu')">
+                    <div class="file-icon" style="color: #FFD700;">📁</div>
+                    <div class="file-name">許皓宇 (Haoyu)</div>
+                </div>
+                <div class="file-item" onclick="navFolder('yuchen')">
+                    <div class="file-icon" style="color: #FFD700;">📁</div>
+                    <div class="file-name">林彧宸 (Yuchen)</div>
+                </div>
+                <div class="file-item" onclick="navFolder('weiting')">
+                    <div class="file-icon" style="color: #FFD700;">📁</div>
+                    <div class="file-name">陳威廷 (Weiting)</div>
+                </div>
+                <div class="file-item" onclick="navFolder('zihan')">
+                    <div class="file-icon" style="color: #FFD700;">📁</div>
+                    <div class="file-name">張子翰 (Zihan)</div>
+                </div>
+            </div>
+
+            <div id="folder-view-haoyu" class="folder-view">
+                <div class="file-item" onclick="openPlayer('여름날의 포구.mp3', '夏日的海港 (여름날의 포구)')">
+                    <div class="file-icon">🎵</div>
+                    <div class="file-name">夏日的海港.mp3</div>
+                </div>
+                <div class="file-item" onclick="openPlayer('미열.mp3', '微熱 (미열)')">
+                    <div class="file-icon">🎵</div>
+                    <div class="file-name">微熱.mp3</div>
+                </div>
+                <div class="file-item" onclick="openPlayer('언제나 네 곁에.mp3', '總是在你身邊 (언제나 네 곁에)')">
+                    <div class="file-icon">🎵</div>
+                    <div class="file-name">總是在你身邊.mp3</div>
+                </div>
+            </div>
+
+            <div id="folder-view-yuchen" class="folder-view">
+                <div class="file-item" onclick="openPlayer('사실은.mp3', '其實 (사실은)')">
+                    <div class="file-icon">🎵</div>
+                    <div class="file-name">其實.mp3</div>
+                </div>
+                <div class="file-item" onclick="openPlayer('균열.mp3', '龜裂 (균열)')">
+                    <div class="file-icon">🎵</div>
+                    <div class="file-name">龜裂.mp3</div>
+                </div>
+                <div class="file-item" onclick="openPlayer('번져가.mp3', '蔓延 (번져가)')">
+                    <div class="file-icon">🎵</div>
+                    <div class="file-name">蔓延.mp3</div>
+                </div>
+            </div>
+
+            <div id="folder-view-weiting" class="folder-view">
+                <div class="file-item" onclick="openPlayer('시끄러워.mp3', '太吵了 (시끄러워)')">
+                    <div class="file-icon">🎵</div>
+                    <div class="file-name">太吵了.mp3</div>
+                </div>
+                <div class="file-item" onclick="openPlayer('불면의 해안선.mp3', '失眠的海岸線 (불면의 해안선)')">
+                    <div class="file-icon">🎵</div>
+                    <div class="file-name">失眠的海岸線.mp3</div>
+                </div>
+                <div class="file-item" onclick="openPlayer('닿지 못한 진심.mp3', '無法傳達的真心 (닿지 못한 진심)')">
+                    <div class="file-icon">🎵</div>
+                    <div class="file-name">無法傳達的真心.mp3</div>
+                </div>
+            </div>
+
+            <div id="folder-view-zihan" class="folder-view">
+                <div class="file-item" onclick="openPlayer('침묵.mp3', '沉默 (침묵)')">
+                    <div class="file-icon">🎵</div>
+                    <div class="file-name">沉默.mp3</div>
+                </div>
+                <div class="file-item" onclick="openPlayer('진심.mp3', '真心 (진심)')">
+                    <div class="file-icon">🎵</div>
+                    <div class="file-name">真心.mp3</div>
+                </div>
+                <div class="file-item" onclick="openPlayer('변하지 않는 것.mp3', '不變的事物 (변하지 않는 것)')">
+                    <div class="file-icon">🎵</div>
+                    <div class="file-name">不變的事物.mp3</div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <div id="player-window" class="draggable-window">
+        <div id="player-titlebar" class="window-titlebar">
+            <div class="title-text">🎵 Media Player</div>
+            <div class="window-controls">
+                <span class="close-btn" onclick="closePlayer()">✕</span>
+            </div>
+        </div>
+        <div id="player-content">
+            <div id="now-playing-title">Song Title</div>
+            <audio id="global-player" src=""></audio>
+            <div class="player-controls">
+                <button onclick="toggleGlobalPlayer()" id="global-play-btn">⏸</button>
+                <button onclick="stopGlobalPlayer()">⏹</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="taskbar">
+        <div class="start-btn">🪟</div>
+        <div class="taskbar-right">
+            <div class="time-display">
+                오후 6:15<br>
+                2015-07-08
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 바탕화면 아이콘 선택 로직
+        const icons = document.querySelectorAll('.icon-container');
+        icons.forEach(icon => {
+            icon.addEventListener('click', (e) => {
+                icons.forEach(i => i.classList.remove('selected'));
+                icon.classList.add('selected');
+                e.stopPropagation();
+            });
+        });
+        document.body.addEventListener('click', () => {
+            icons.forEach(i => i.classList.remove('selected'));
+        });
+
+        // 공통 창 드래그 및 Z-index 제어 로직
+        function makeDraggable(titlebarId, windowId) {
+            const titlebar = document.getElementById(titlebarId);
+            const win = document.getElementById(windowId);
+            let isDragging = false, offsetX, offsetY;
+
+            titlebar.addEventListener('mousedown', (e) => {
+// 👇 이 부분을 추가하세요! (모바일 화면에서는 드래그 금지)
+                if (window.innerWidth <= 768) return;
+                isDragging = true;
+                offsetX = e.clientX - win.offsetLeft;
+                offsetY = e.clientY - win.offsetTop;
+                // 현재 클릭한 창을 맨 위로
+                document.querySelectorAll('.draggable-window').forEach(w => w.style.zIndex = 500);
+                win.style.zIndex = 600;
+            });
+            document.addEventListener('mousemove', (e) => {
+                if (isDragging) {
+                    win.style.left = `${e.clientX - offsetX}px`;
+                    win.style.top = `${e.clientY - offsetY}px`;
+                }
+            });
+            document.addEventListener('mouseup', () => { isDragging = false; });
+            
+            // 창 내부 클릭 시에도 맨 위로
+            win.addEventListener('mousedown', () => {
+                document.querySelectorAll('.draggable-window').forEach(w => w.style.zIndex = 500);
+                win.style.zIndex = 600;
+            });
+        }
+
+        makeDraggable('browser-titlebar', 'browser-window');
+        makeDraggable('folder-titlebar', 'folder-window');
+        makeDraggable('player-titlebar', 'player-window');
+
+        // 브라우저 열기/닫기
+        function openBrowser() { 
+            const bw = document.getElementById('browser-window');
+            bw.style.display = 'flex'; 
+            document.querySelectorAll('.draggable-window').forEach(w => w.style.zIndex = 500);
+            bw.style.zIndex = 600;
+        }
+        function closeBrowser() { document.getElementById('browser-window').style.display = 'none'; }
+
+        // 폴더 열기/닫기/네비게이션
+        function openFolder() { 
+            const fw = document.getElementById('folder-window');
+            fw.style.display = 'flex'; 
+            navFolder('root');
+            document.querySelectorAll('.draggable-window').forEach(w => w.style.zIndex = 500);
+            fw.style.zIndex = 600;
+        }
+        function closeFolder() { document.getElementById('folder-window').style.display = 'none'; }
+
+        function navFolder(view) {
+            document.querySelectorAll('.folder-view').forEach(el => el.style.display = 'none');
+            document.getElementById('folder-view-' + view).style.display = 'flex';
+            
+            const pathBar = document.getElementById('folder-path');
+            if(view === 'root') pathBar.value = "C:\\Users\\Desktop\\Theme Songs";
+            else if(view === 'haoyu') pathBar.value = "C:\\Users\\Desktop\\Theme Songs\\許皓宇";
+            else if(view === 'yuchen') pathBar.value = "C:\\Users\\Desktop\\Theme Songs\\林彧宸";
+            else if(view === 'weiting') pathBar.value = "C:\\Users\\Desktop\\Theme Songs\\陳威廷";
+            else if(view === 'zihan') pathBar.value = "C:\\Users\\Desktop\\Theme Songs\\張子翰";
+        }
+
+        // 플레이어 열기/닫기/컨트롤
+        function openPlayer(src, title) {
+            const pw = document.getElementById('player-window');
+            pw.style.display = 'flex';
+            document.querySelectorAll('.draggable-window').forEach(w => w.style.zIndex = 500);
+            pw.style.zIndex = 600;
+
+            document.getElementById('now-playing-title').innerText = title;
+            const player = document.getElementById('global-player');
+            player.src = src;
+            
+            stopAllAudiosExcept('global-player');
+            player.play();
+            document.getElementById('global-play-btn').innerText = '⏸';
+        }
+
+        function closePlayer() { 
+            document.getElementById('player-window').style.display = 'none'; 
+            const player = document.getElementById('global-player');
+            player.pause();
+        }
+
+        function toggleGlobalPlayer() {
+            const player = document.getElementById('global-player');
+            const btn = document.getElementById('global-play-btn');
+            if (player.paused) {
+                stopAllAudiosExcept('global-player');
+                player.play();
+                btn.innerText = '⏸';
+            } else {
+                player.pause();
+                btn.innerText = '▶';
+            }
+        }
+        
+        function stopGlobalPlayer() {
+            const player = document.getElementById('global-player');
+            player.pause();
+            player.currentTime = 0;
+            document.getElementById('global-play-btn').innerText = '▶';
+        }
+
+        // 야후 검색창 로직
+        const searchInput = document.getElementById('search-input');
+        const searchHistory = document.getElementById('search-history');
+        searchInput.addEventListener('focus', () => { searchHistory.style.display = 'flex'; });
+        document.addEventListener('click', (e) => {
+            if (e.target !== searchInput && e.target !== searchHistory) {
+                searchHistory.style.display = 'none';
+            }
+        });
+
+        // ==========================================
+        // 페이지 네비게이션(라우팅) 및 뒤로가기 로직
+        // ==========================================
+        let pageStack = ['yahoo']; 
+
+        const yahooPage = document.getElementById('yahoo-page');
+        const qinghaiPage = document.getElementById('qinghai-page');
+        const snsHaoyuPage = document.getElementById('sns-haoyu-page'); 
+        const snsYuchenPage = document.getElementById('sns-yuchen-page'); 
+        const snsWeitingPage = document.getElementById('sns-weiting-page'); 
+        const snsZihanPage = document.getElementById('sns-zihan-page'); 
+        const urlBar = document.getElementById('url-bar');
+
+        function navigatePage(target) {
+            searchHistory.style.display = 'none'; 
+            
+            if (target === 'qinghai') {
+                hideAllPages();
+                qinghaiPage.style.display = 'block';
+                switchQhTab('notice');
+                urlBar.value = "http://www.qinghai.tc.edu.tw";
+                pageStack.push('qinghai'); 
+            } else if (target === 'haoyu') { 
+                hideAllPages();
+                snsHaoyuPage.style.display = 'block';
+                switchHaoyuTab('profile');
+                urlBar.value = "http://www.wretch.cc/blog/haoyu_0809/profile"; 
+                pageStack.push('haoyu'); 
+            } else if (target === 'yuchen') { 
+                hideAllPages();
+                snsYuchenPage.style.display = 'block';
+                switchYuchenTab('profile');
+                urlBar.value = "http://www.wretch.cc/blog/yuchen_0314/profile"; 
+                pageStack.push('yuchen'); 
+            } else if (target === 'weiting') { 
+                hideAllPages();
+                snsWeitingPage.style.display = 'block';
+                switchWeitingTab('profile');
+                urlBar.value = "http://www.wretch.cc/blog/weiting_1112/profile"; 
+                pageStack.push('weiting'); 
+            } else if (target === 'zihan') { 
+                hideAllPages();
+                snsZihanPage.style.display = 'block';
+                switchZihanTab('profile');
+                urlBar.value = "http://www.wretch.cc/blog/zihan_0103/profile"; 
+                pageStack.push('zihan'); 
+            } else {
+                alert(`[${target}] 캐릭터 SNS 페이지는 아직 준비 중입니다!`);
+            }
+        }
+        
+        function hideAllPages() {
+            yahooPage.style.display = 'none';
+            qinghaiPage.style.display = 'none';
+            snsHaoyuPage.style.display = 'none';
+            snsYuchenPage.style.display = 'none'; 
+            snsWeitingPage.style.display = 'none';
+            snsZihanPage.style.display = 'none';
+
+            stopAllAudiosExcept(null);
+        }
+        
+        document.getElementById('back-btn').addEventListener('click', () => {
+            if (pageStack.length > 1) {
+                pageStack.pop(); 
+                let prevPage = pageStack[pageStack.length - 1]; 
+                
+                hideAllPages();
+                
+                if (prevPage === 'yahoo') {
+                    yahooPage.style.display = 'block';
+                    urlBar.value = "https://tw.yahoo.com";
+                } else if (prevPage === 'qinghai') {
+                    qinghaiPage.style.display = 'block';
+                    urlBar.value = "http://www.qinghai.tc.edu.tw";
+                } else if (prevPage === 'haoyu') {
+                    snsHaoyuPage.style.display = 'block';
+                    switchHaoyuTab('profile');
+                    urlBar.value = "http://www.wretch.cc/blog/haoyu_0809/profile";
+                } else if (prevPage === 'yuchen') {
+                    snsYuchenPage.style.display = 'block';
+                    switchYuchenTab('profile');
+                    urlBar.value = "http://www.wretch.cc/blog/yuchen_0314/profile";
+                } else if (prevPage === 'weiting') {
+                    snsWeitingPage.style.display = 'block';
+                    switchWeitingTab('profile');
+                    urlBar.value = "http://www.wretch.cc/blog/weiting_1112/profile";
+                } else if (prevPage === 'zihan') {
+                    snsZihanPage.style.display = 'block';
+                    switchZihanTab('profile');
+                    urlBar.value = "http://www.wretch.cc/blog/zihan_0103/profile";
+                }
+            }
+        });
+
+        // ==========================================
+        // 오디오 재생 중복 방지 제어 로직
+        // ==========================================
+        function stopAllAudiosExcept(exceptId) {
+            const players = [
+                { audio: document.getElementById('haoyu-audio'), btn: document.getElementById('bgm-play-btn') },
+                { audio: document.getElementById('yuchen-audio'), btn: document.getElementById('yc-bgm-play-btn') },
+                { audio: document.getElementById('weiting-audio'), btn: document.getElementById('wt-bgm-play-btn') },
+                { audio: document.getElementById('zihan-audio'), btn: document.getElementById('zh-bgm-play-btn') },
+                { audio: document.getElementById('global-player'), btn: document.getElementById('global-play-btn') }
+            ];
+            
+            players.forEach(p => {
+                if (p.audio && p.audio.id !== exceptId) {
+                    p.audio.pause();
+                    if(p.btn) p.btn.innerText = '▶';
+                }
+            });
+        }
+
+        // ==========================================
+        // 청해고 홈페이지 내부 탭 전환 로직
+        // ==========================================
+        function switchQhTab(tabName) {
+            document.getElementById('tab-intro').classList.remove('active');
+            document.getElementById('tab-notice').classList.remove('active');
+            document.getElementById('tab-life').classList.remove('active');
+            document.getElementById('tab-club').classList.remove('active');
+            
+            document.getElementById('qh-intro-content').style.display = 'none';
+            document.getElementById('qh-notice-content').style.display = 'none';
+            document.getElementById('qh-life-content').style.display = 'none';
+            document.getElementById('qh-club-content').style.display = 'none';
+
+            if(tabName === 'intro') {
+                document.getElementById('tab-intro').classList.add('active');
+                document.getElementById('qh-intro-content').style.display = 'block';
+                urlBar.value = "http://www.qinghai.tc.edu.tw/about"; 
+            } else if(tabName === 'notice') {
+                document.getElementById('tab-notice').classList.add('active');
+                document.getElementById('qh-notice-content').style.display = 'block';
+                urlBar.value = "http://www.qinghai.tc.edu.tw/notice"; 
+            } else if(tabName === 'life') {
+                document.getElementById('tab-life').classList.add('active');
+                document.getElementById('qh-life-content').style.display = 'block';
+                urlBar.value = "http://www.qinghai.tc.edu.tw/life"; 
+            } else if(tabName === 'club') {
+                document.getElementById('tab-club').classList.add('active');
+                document.getElementById('qh-club-content').style.display = 'block';
+                urlBar.value = "http://www.qinghai.tc.edu.tw/club"; 
+            }
+        }
+
+        // ==========================================
+        // 하오위 SNS 스크립트
+        // ==========================================
+        function switchHaoyuTab(tabName) {
+            document.getElementById('haoyu-tab-diary').classList.remove('active');
+            document.getElementById('haoyu-tab-profile').classList.remove('active');
+            document.getElementById('haoyu-tab-friends').classList.remove('active');
+            
+            document.getElementById('sns-tab-diary').style.display = 'none';
+            document.getElementById('sns-tab-profile').style.display = 'none';
+            document.getElementById('sns-tab-friends').style.display = 'none';
+
+            if(tabName === 'diary') {
+                document.getElementById('haoyu-tab-diary').classList.add('active');
+                document.getElementById('sns-tab-diary').style.display = 'block';
+                urlBar.value = "http://www.wretch.cc/blog/haoyu_0809"; 
+            } else if(tabName === 'profile') {
+                document.getElementById('haoyu-tab-profile').classList.add('active');
+                document.getElementById('sns-tab-profile').style.display = 'block';
+                urlBar.value = "http://www.wretch.cc/blog/haoyu_0809/profile"; 
+            } else if(tabName === 'friends') {
+                document.getElementById('haoyu-tab-friends').classList.add('active');
+                document.getElementById('sns-tab-friends').style.display = 'block';
+                urlBar.value = "http://www.wretch.cc/blog/haoyu_0809/friends"; 
+            }
+        }
+
+        const hyAudio = document.getElementById('haoyu-audio');
+        const hyPlayBtn = document.getElementById('bgm-play-btn');
+        const hyTitleMarquee = document.getElementById('bgm-title');
+        const hyPlaylist = [
+            { src: "여름날의 포구.mp3", title: "夏日的海港 (여름날의 포구)" },
+            { src: "미열.mp3", title: "微熱 (미열)" },
+            { src: "언제나 네 곁에.mp3", title: "總是在你身邊 (언제나 네 곁에)" }
+        ];
+        let hyCurrentSongIndex = 0;
+
+        function togglePlay() {
+            if (hyAudio.paused) {
+                stopAllAudiosExcept('haoyu-audio'); 
+                hyAudio.play();
+                hyPlayBtn.innerText = '⏸'; 
+            } else {
+                hyAudio.pause();
+                hyPlayBtn.innerText = '▶'; 
+            }
+        }
+        function nextSong() {
+            hyCurrentSongIndex = (hyCurrentSongIndex + 1) % hyPlaylist.length;
+            hyAudio.src = hyPlaylist[hyCurrentSongIndex].src;
+            hyTitleMarquee.innerText = hyPlaylist[hyCurrentSongIndex].title;
+            if (hyPlayBtn.innerText === '⏸') hyAudio.play();
+        }
+        hyAudio.addEventListener('ended', nextSong);
+        
+        // ==========================================
+        // 위천 SNS 스크립트
+        // ==========================================
+        function switchYuchenTab(tabName) {
+            document.getElementById('yc-nav-diary').classList.remove('active');
+            document.getElementById('yc-nav-profile').classList.remove('active');
+            document.getElementById('yc-nav-friends').classList.remove('active');
+            
+            document.getElementById('yc-tab-diary').style.display = 'none';
+            document.getElementById('yc-tab-profile').style.display = 'none';
+            document.getElementById('yc-tab-friends').style.display = 'none';
+
+            if(tabName === 'diary') {
+                document.getElementById('yc-nav-diary').classList.add('active');
+                document.getElementById('yc-tab-diary').style.display = 'block';
+                urlBar.value = "http://www.wretch.cc/blog/yuchen_0314"; 
+            } else if(tabName === 'profile') {
+                document.getElementById('yc-nav-profile').classList.add('active');
+                document.getElementById('yc-tab-profile').style.display = 'block';
+                urlBar.value = "http://www.wretch.cc/blog/yuchen_0314/profile"; 
+            } else if(tabName === 'friends') {
+                document.getElementById('yc-nav-friends').classList.add('active');
+                document.getElementById('yc-tab-friends').style.display = 'block';
+                urlBar.value = "http://www.wretch.cc/blog/yuchen_0314/friends"; 
+            }
+        }
+
+        const ycAudio = document.getElementById('yuchen-audio');
+        const ycPlayBtn = document.getElementById('yc-bgm-play-btn');
+        const ycTitleMarquee = document.getElementById('yc-bgm-title');
+        const ycPlaylist = [
+            { src: "사실은.mp3", title: "其實 (사실은)" },
+            { src: "균열.mp3", title: "龜裂 (균열)" },
+            { src: "번져가.mp3", title: "蔓延 (번져가)" }
+        ];
+        let ycCurrentSongIndex = 0;
+
+        function toggleYcPlay() {
+            if (ycAudio.paused) {
+                stopAllAudiosExcept('yuchen-audio'); 
+                ycAudio.play();
+                ycPlayBtn.innerText = '⏸'; 
+            } else {
+                ycAudio.pause();
+                ycPlayBtn.innerText = '▶'; 
+            }
+        }
+        function nextYcSong() {
+            ycCurrentSongIndex = (ycCurrentSongIndex + 1) % ycPlaylist.length;
+            ycAudio.src = ycPlaylist[ycCurrentSongIndex].src;
+            ycTitleMarquee.innerText = ycPlaylist[ycCurrentSongIndex].title;
+            if (ycPlayBtn.innerText === '⏸') ycAudio.play();
+        }
+        ycAudio.addEventListener('ended', nextYcSong);
+
+        // ==========================================
+        // 웨이팅 SNS 스크립트
+        // ==========================================
+        function switchWeitingTab(tabName) {
+            document.getElementById('wt-nav-diary').classList.remove('active');
+            document.getElementById('wt-nav-profile').classList.remove('active');
+            document.getElementById('wt-nav-friends').classList.remove('active');
+            
+            document.getElementById('wt-tab-diary').style.display = 'none';
+            document.getElementById('wt-tab-profile').style.display = 'none';
+            document.getElementById('wt-tab-friends').style.display = 'none';
+
+            if(tabName === 'diary') {
+                document.getElementById('wt-nav-diary').classList.add('active');
+                document.getElementById('wt-tab-diary').style.display = 'block';
+                urlBar.value = "http://www.wretch.cc/blog/weiting_1112"; 
+            } else if(tabName === 'profile') {
+                document.getElementById('wt-nav-profile').classList.add('active');
+                document.getElementById('wt-tab-profile').style.display = 'block';
+                urlBar.value = "http://www.wretch.cc/blog/weiting_1112/profile"; 
+            } else if(tabName === 'friends') {
+                document.getElementById('wt-nav-friends').classList.add('active');
+                document.getElementById('wt-tab-friends').style.display = 'block';
+                urlBar.value = "http://www.wretch.cc/blog/weiting_1112/friends"; 
+            }
+        }
+
+        const wtAudio = document.getElementById('weiting-audio');
+        const wtPlayBtn = document.getElementById('wt-bgm-play-btn');
+        const wtTitleMarquee = document.getElementById('wt-bgm-title');
+        const wtPlaylist = [
+            { src: "시끄러워.mp3", title: "太吵了 (시끄러워)" },
+            { src: "불면의 해안선.mp3", title: "失眠的海岸線 (불면의 해안선)" },
+            { src: "닿지 못한 진심.mp3", title: "無法傳達的真心 (닿지 못한 진심)" }
+        ];
+        let wtCurrentSongIndex = 0;
+
+        function toggleWtPlay() {
+            if (wtAudio.paused) {
+                stopAllAudiosExcept('weiting-audio'); 
+                wtAudio.play();
+                wtPlayBtn.innerText = '⏸'; 
+            } else {
+                wtAudio.pause();
+                wtPlayBtn.innerText = '▶'; 
+            }
+        }
+        function nextWtSong() {
+            wtCurrentSongIndex = (wtCurrentSongIndex + 1) % wtPlaylist.length;
+            wtAudio.src = wtPlaylist[wtCurrentSongIndex].src;
+            wtTitleMarquee.innerText = wtPlaylist[wtCurrentSongIndex].title;
+            if (wtPlayBtn.innerText === '⏸') wtAudio.play();
+        }
+        wtAudio.addEventListener('ended', nextWtSong);
+
+        // ==========================================
+        // 쯔한 SNS 스크립트
+        // ==========================================
+        function switchZihanTab(tabName) {
+            document.getElementById('zh-nav-diary').classList.remove('active');
+            document.getElementById('zh-nav-profile').classList.remove('active');
+            document.getElementById('zh-nav-friends').classList.remove('active');
+            
+            document.getElementById('zh-tab-diary').style.display = 'none';
+            document.getElementById('zh-tab-profile').style.display = 'none';
+            document.getElementById('zh-tab-friends').style.display = 'none';
+
+            if(tabName === 'diary') {
+                document.getElementById('zh-nav-diary').classList.add('active');
+                document.getElementById('zh-tab-diary').style.display = 'block';
+                urlBar.value = "http://www.wretch.cc/blog/zihan_0103"; 
+            } else if(tabName === 'profile') {
+                document.getElementById('zh-nav-profile').classList.add('active');
+                document.getElementById('zh-tab-profile').style.display = 'block';
+                urlBar.value = "http://www.wretch.cc/blog/zihan_0103/profile"; 
+            } else if(tabName === 'friends') {
+                document.getElementById('zh-nav-friends').classList.add('active');
+                document.getElementById('zh-tab-friends').style.display = 'block';
+                urlBar.value = "http://www.wretch.cc/blog/zihan_0103/friends"; 
+            }
+        }
+
+        const zhAudio = document.getElementById('zihan-audio');
+        const zhPlayBtn = document.getElementById('zh-bgm-play-btn');
+        const zhTitleMarquee = document.getElementById('zh-bgm-title');
+        const zhPlaylist = [
+            { src: "침묵.mp3", title: "沉默 (침묵)" },
+            { src: "진심.mp3", title: "真心 (진심)" },
+            { src: "변하지 않는 것.mp3", title: "不變的事物 (변하지 않는 것)" }
+        ];
+        let zhCurrentSongIndex = 0;
+
+        function toggleZhPlay() {
+            if (zhAudio.paused) {
+                stopAllAudiosExcept('zihan-audio'); 
+                zhAudio.play();
+                zhPlayBtn.innerText = '⏸'; 
+            } else {
+                zhAudio.pause();
+                zhPlayBtn.innerText = '▶'; 
+            }
+        }
+        function nextZhSong() {
+            zhCurrentSongIndex = (zhCurrentSongIndex + 1) % zhPlaylist.length;
+            zhAudio.src = zhPlaylist[zhCurrentSongIndex].src;
+            zhTitleMarquee.innerText = zhPlaylist[zhCurrentSongIndex].title;
+            if (zhPlayBtn.innerText === '⏸') zhAudio.play();
+        }
+        zhAudio.addEventListener('ended', nextZhSong);
+
+    </script>
+</body>
+</html>
